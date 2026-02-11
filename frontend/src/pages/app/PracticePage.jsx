@@ -17,39 +17,48 @@ export default function PracticePage() {
     []
   );
 
+  const total = questions.length;
+
   const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
 
   const [showFeedback, setShowFeedback] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
 
-  const total = questions.length;
-  const currentQ = questions[index];
+  const currentQ = index < total ? questions[index] : null;
 
   function startSession() {
     setStarted(true);
     setIndex(0);
     setScore(0);
     setShowFeedback(false);
+    setLastCorrect(false);
+    setSelectedAnswer(null);
   }
 
   function handleAnswer(choice) {
     if (!currentQ || showFeedback) return;
 
+    setSelectedAnswer(choice);
+
     const correct = choice === currentQ.answer;
     setLastCorrect(correct);
+
     if (correct) setScore((s) => s + 1);
+
     setShowFeedback(true);
   }
 
   function nextQuestion() {
-    const next = index + 1;
+    setSelectedAnswer(null);
     setShowFeedback(false);
 
+    const next = index + 1;
+
     if (next >= total) {
-      // finished
-      setIndex(total); // push beyond last question
+      setIndex(total); // triggers end screen
       return;
     }
 
@@ -61,10 +70,14 @@ export default function PracticePage() {
     return (
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <h1 className="text-3xl font-black tracking-tight">Practice Complete</h1>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-slate-600">Your score</p>
           <p className="mt-2 text-5xl font-black">
             {score} / {total}
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Accuracy: {Math.round((score / total) * 100)}%
           </p>
         </div>
 
@@ -89,7 +102,7 @@ export default function PracticePage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
           <p className="font-semibold">Session length: {total} questions</p>
           <p className="text-sm text-slate-600">
             Later: this will use your saved vocabulary + weak words.
@@ -118,7 +131,12 @@ export default function PracticePage() {
 
       <QuestionCard word={currentQ.word} />
 
-      <AnswerOptions disabled={showFeedback} onAnswer={handleAnswer} />
+      <AnswerOptions
+        disabled={showFeedback}
+        selected={selectedAnswer}
+        correctAnswer={currentQ.answer}
+        onAnswer={handleAnswer}
+      />
 
       <FeedbackPanel
         visible={showFeedback}
@@ -129,4 +147,3 @@ export default function PracticePage() {
     </div>
   );
 }
-

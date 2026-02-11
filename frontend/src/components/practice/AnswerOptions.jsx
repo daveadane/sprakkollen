@@ -1,20 +1,35 @@
-export default function AnswerOptions({ disabled, onAnswer }) {
+export default function AnswerOptions({
+  disabled,
+  selected,
+  correctAnswer,
+  onAnswer,
+}) {
+  function getStyle(option) {
+    if (!selected) return "border-slate-200 bg-white hover:bg-slate-50";
+
+    if (option === correctAnswer)
+      return "border-emerald-500 bg-emerald-100";
+
+    if (option === selected)
+      return "border-red-500 bg-red-100";
+
+    return "border-slate-200 bg-white opacity-50";
+  }
+
   return (
     <div className="grid grid-cols-2 gap-3">
-      <button
-        disabled={disabled}
-        onClick={() => onAnswer("en")}
-        className="rounded-2xl border border-slate-200 bg-white py-4 text-lg font-bold hover:bg-slate-50 disabled:opacity-60"
-      >
-        EN
-      </button>
-      <button
-        disabled={disabled}
-        onClick={() => onAnswer("ett")}
-        className="rounded-2xl border border-slate-200 bg-white py-4 text-lg font-bold hover:bg-slate-50 disabled:opacity-60"
-      >
-        ETT
-      </button>
+      {["en", "ett"].map((option) => (
+        <button
+          key={option}
+          disabled={disabled}
+          onClick={() => onAnswer(option)}
+          className={`rounded-2xl border py-4 text-lg font-bold transition-all ${getStyle(
+            option
+          )}`}
+        >
+          {option.toUpperCase()}
+        </button>
+      ))}
     </div>
   );
 }
