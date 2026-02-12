@@ -1,23 +1,20 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import Sidebar from "../components/nav/Sidebar";
+import Topbar from "../components/nav/Topbar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="px-6 py-4 flex items-center justify-between border-b bg-white">
-        <Link to="/app" className="font-black text-lg">
-          Språkkollen App
-        </Link>
-        <nav className="flex gap-4 text-sm">
-          <Link to="/app/checker" className="hover:underline">Checker</Link>
-          <Link to="/app/practice" className="hover:underline">Practice</Link>
-          <Link to="/app/vocabulary" className="hover:underline">Vocabulary</Link>
-          <Link to="/app/progress" className="hover:underline">Progress</Link>
-        </nav>
-      </header>
+    <div className="flex min-h-screen bg-slate-50">
+      <Sidebar />
 
-      <main className="p-6">
-        <Outlet />
-      </main>
+      <div className="flex flex-1 flex-col">
+        <Topbar />
+
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
+

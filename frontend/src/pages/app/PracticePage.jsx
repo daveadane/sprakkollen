@@ -22,6 +22,8 @@ export default function PracticePage() {
   const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [xp, setXp] = useState(0);
+
 
   const [showFeedback, setShowFeedback] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(false);
@@ -46,7 +48,11 @@ export default function PracticePage() {
     const correct = choice === currentQ.answer;
     setLastCorrect(correct);
 
-    if (correct) setScore((s) => s + 1);
+      if (correct) {
+    setScore((s) => s + 1);
+    setXp((prev) => prev + 10); // +10 XP per correct answer
+    }
+
 
     setShowFeedback(true);
   }
@@ -79,6 +85,10 @@ export default function PracticePage() {
           <p className="mt-2 text-sm text-slate-500">
             Accuracy: {Math.round((score / total) * 100)}%
           </p>
+          <p className="mt-2 text-lg font-semibold text-blue-600">
+            XP earned: {xp}
+          </p>
+
         </div>
 
         <button
@@ -126,7 +136,10 @@ export default function PracticePage() {
         <h1 className="text-3xl font-black tracking-tight">Practice Session</h1>
         <p className="mt-2 text-slate-600">Choose the correct article.</p>
       </div>
-
+          <div className="flex justify-between text-sm font-semibold text-slate-600">
+        <span>Score: {score}</span>
+        <span>XP: {xp}</span>
+      </div>
       <ProgressBar current={index + 1} total={total} />
 
       <QuestionCard word={currentQ.word} />
