@@ -4,13 +4,17 @@ import Topbar from "../components/nav/Topbar";
 
 export default function AppLayout() {
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
+    <div className="min-h-screen bg-slate-50">
+      <Topbar />
 
-      <div className="flex flex-1 flex-col">
-        <Topbar />
+      <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6">
+        {/* Left */}
+        <div className="shrink-0">
+          <Sidebar />
+        </div>
 
-        <main className="flex-1 p-6">
+        {/* Right */}
+        <main className="min-w-0 flex-1">
           <Outlet />
         </main>
       </div>

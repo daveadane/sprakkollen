@@ -1,11 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
-import AppLayout from "../layouts/AppLayout";
 
+// public pages
 import LandingPage from "../pages/public/LandingPage";
+import AboutPage from "../pages/public/AboutPage";
+import ContactPage from "../pages/public/ContactPage";
 import LoginPage from "../pages/public/LoginPage";
 import RegisterPage from "../pages/public/RegisterPage";
 
+// “modules” pages (still pages, but NOT under /app)
 import DashboardPage from "../pages/app/DashboardPage";
 import CheckerPage from "../pages/app/CheckerPage";
 import PracticePage from "../pages/app/PracticePage";
@@ -16,20 +19,19 @@ export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
+      // Website pages (top navbar)
       { path: "/", element: <LandingPage /> },
+      { path: "/about", element: <AboutPage /> },
+      { path: "/contact", element: <ContactPage /> },
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
-    ],
-  },
-  {
-    path: "/app",
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <DashboardPage /> },
-      { path: "checker", element: <CheckerPage /> },
-      { path: "practice", element: <PracticePage /> },
-      { path: "vocabulary", element: <VocabularyPage /> },
-      { path: "progress", element: <ProgressPage /> },
+
+      // Språkkollen modules (accessible from Home)
+      { path: "/dashboard", element: <DashboardPage /> },
+      { path: "/checker", element: <CheckerPage /> },
+      { path: "/practice", element: <PracticePage /> },
+      { path: "/vocabulary", element: <VocabularyPage /> },
+      { path: "/progress", element: <ProgressPage /> },
     ],
   },
 ]);

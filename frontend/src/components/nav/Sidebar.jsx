@@ -1,60 +1,65 @@
 import { NavLink } from "react-router-dom";
 
-const linkClasses =
-  "block rounded-xl px-4 py-2 font-medium transition hover:bg-slate-100";
-
-const activeClasses = "bg-blue-100 text-blue-700";
+const linkBase =
+  "block rounded-lg px-3 py-2 text-sm font-semibold transition";
+const active =
+  "bg-blue-600 text-white";
+const inactive =
+  "text-slate-700 hover:bg-slate-100";
 
 export default function Sidebar() {
   return (
-    <aside className="w-60 border-r border-slate-200 bg-white p-4 space-y-2">
-      <h2 className="mb-4 text-lg font-bold">Språkkollen</h2>
+    <aside className="w-64 border-r border-slate-200 bg-white p-4">
+      <div className="mb-6 text-xl font-black">Språkkollen</div>
 
-      <NavLink
-        to="/app"
-        end
-        className={({ isActive }) =>
-          `${linkClasses} ${isActive ? activeClasses : ""}`
-        }
-      >
-        Dashboard
-      </NavLink>
+      <nav className="space-y-2">
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Dashboard
+        </NavLink>
 
-      <NavLink
-        to="/app/checker"
-        className={({ isActive }) =>
-          `${linkClasses} ${isActive ? activeClasses : ""}`
-        }
-      >
-        Checker
-      </NavLink>
+        <NavLink
+          to="/checker"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Checker
+        </NavLink>
 
-      <NavLink
-        to="/app/practice"
-        className={({ isActive }) =>
-          `${linkClasses} ${isActive ? activeClasses : ""}`
-        }
-      >
-        Practice
-      </NavLink>
+        <NavLink
+          to="/practice"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Practice
+        </NavLink>
 
-      <NavLink
-        to="/app/vocabulary"
-        className={({ isActive }) =>
-          `${linkClasses} ${isActive ? activeClasses : ""}`
-        }
-      >
-        Vocabulary
-      </NavLink>
+        <NavLink
+          to="/vocabulary"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Vocabulary
+        </NavLink>
 
-      <NavLink
-        to="/app/progress"
-        className={({ isActive }) =>
-          `${linkClasses} ${isActive ? activeClasses : ""}`
-        }
-      >
-        Progress
-      </NavLink>
+        <NavLink
+          to="/progress"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Progress
+        </NavLink>
+      </nav>
     </aside>
   );
 }
+
