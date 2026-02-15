@@ -3,6 +3,8 @@ import ProgressBar from "../../components/practice/ProgressBar";
 import QuestionCard from "../../components/practice/QuestionCard";
 import AnswerOptions from "../../components/practice/AnswerOptions";
 import FeedbackPanel from "../../components/practice/FeedbackPanel";
+import { recordPractice } from "../../utils/progressStorage";
+
 
 export default function PracticePage() {
   // Mock question set (later comes from backend)
@@ -64,9 +66,13 @@ export default function PracticePage() {
     const next = index + 1;
 
     if (next >= total) {
-      setIndex(total); // triggers end screen
+      // Save session result
+      recordPractice({ score, total });
+
+      setIndex(total);
       return;
     }
+
 
     setIndex(next);
   }

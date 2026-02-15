@@ -6,6 +6,8 @@ const items = [
   { title: "Practice", desc: "Duolingo-style EN/ETT practice.", to: "/practice" },
   { title: "Vocabulary", desc: "Manage your word list (CRUD).", to: "/vocabulary" },
   { title: "Progress", desc: "Track results and weak words.", to: "/progress" },
+  { title: "Grammar", desc: "Rules + examples.", to: "/grammar" },
+  { title: "Profile", desc: "XP, settings, logout.", to: "/profile" },
 ];
 
 export default function LandingPage() {

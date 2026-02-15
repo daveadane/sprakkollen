@@ -7,6 +7,10 @@ import AboutPage from "../pages/public/AboutPage";
 import ContactPage from "../pages/public/ContactPage";
 import LoginPage from "../pages/public/LoginPage";
 import RegisterPage from "../pages/public/RegisterPage";
+import GrammarPage from "../pages/app/GrammarPage";
+import ProfilePage from "../pages/app/ProfilePage";
+import SessionPage from "../pages/app/SessionPage";
+
 
 // “modules” pages (still pages, but NOT under /app)
 import DashboardPage from "../pages/app/DashboardPage";
@@ -30,8 +34,12 @@ export const router = createBrowserRouter([
       { path: "/dashboard", element: <DashboardPage /> },
       { path: "/checker", element: <CheckerPage /> },
       { path: "/practice", element: <PracticePage /> },
+      { path: "/practice/session/:id", element: <SessionPage /> },
       { path: "/vocabulary", element: <VocabularyPage /> },
+      { path: "/grammar", element: <GrammarPage /> },
       { path: "/progress", element: <ProgressPage /> },
+      { path: "/profile", element: <ProfilePage /> },
+
     ],
   },
 ]);
