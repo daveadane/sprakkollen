@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
 
+
 // public pages
 import LandingPage from "../pages/public/LandingPage";
 import AboutPage from "../pages/public/AboutPage";
@@ -10,6 +11,7 @@ import RegisterPage from "../pages/public/RegisterPage";
 import GrammarPage from "../pages/app/GrammarPage";
 import ProfilePage from "../pages/app/ProfilePage";
 import SessionPage from "../pages/app/SessionPage";
+
 
 
 // “modules” pages (still pages, but NOT under /app)
