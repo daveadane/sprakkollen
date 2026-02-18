@@ -1,19 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.settings import settings
 from app.api.endpoints.general import router as general_router
+from app.api.endpoints.lookup import router as lookup_router
 
-app = FastAPI(title="Språkkollen API")
+app = FastAPI(title="SpråkKollen API", version="0.1")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Step 3 will introduce a central api_router; for Step 1/2 we can include directly:
-app.include_router(general_router, prefix=settings.API_PREFIX, tags=["general"])
+# Mount all API routes under /api
+app.include_router(general_router, prefix="/api")
+app.include_router(lookup_router, prefix="/api")
+
 
