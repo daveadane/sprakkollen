@@ -30,11 +30,7 @@ export default function GrammarPage() {
       },
       {
         prompt: "Which is correct word order?",
-        options: [
-          "Jag inte förstår.",
-          "Jag förstår inte.",
-          "Inte jag förstår.",
-        ],
+        options: ["Jag inte förstår.", "Jag förstår inte.", "Inte jag förstår."],
         answer: "Jag förstår inte.",
         explain: "Standard: subject + verb + inte.",
       },
@@ -53,43 +49,49 @@ export default function GrammarPage() {
 
   const q = questions[i];
 
-const [lastCorrect, setLastCorrect] = useState(false);
-
-function start() {
-  setStarted(true);
-  setI(0);
-  setScore(0);
-  setPicked(null);
-  setShowFeedback(false);
-  setLastCorrect(false);
-}
-
-function choose(option) {
-  if (!q || showFeedback) return;
-
-  const isCorrect = option === q.answer;
-
-  setPicked(option);
-  setShowFeedback(true);
-  setLastCorrect(isCorrect);
-
-  if (isCorrect) setScore((s) => s + 1);
-}
-
-function next() {
-  setPicked(null);
-  setShowFeedback(false);
-
-  const nextIndex = i + 1;
-  if (nextIndex >= total) {
-    const finalScore = lastCorrect ? score + 1 : score;
-    recordGrammarQuiz({ score: finalScore, total });
-    setI(total);
-    return;
+  function start() {
+    setStarted(true);
+    setI(0);
+    setScore(0);
+    setPicked(null);
+    setShowFeedback(false);
   }
-  setI(nextIndex);
-}
 
+  function choose(option) {
+    if (!q || showFeedback) return; // prevents double answering
+
+    setPicked(option);
+    setShowFeedback(true);
+
+    if (option === q.answer) {
+      setScore((s) => s + 1);
+    }
+  }
+
+  function next() {
+    // If not showing feedback, ignore
+    if (!showFeedback) return;
+
+    // compute the score that should be recorded if we're finishing
+    const answeredCorrect = picked === q.answer;
+    const finalScore = answeredCorrect ? score : score; // score already updated in choose()
+
+    const nextIndex = i + 1;
+
+    // reset UI for next question
+    setPicked(null);
+    setShowFeedback(false);
+
+    if (nextIndex >= total) {
+      // IMPORTANT: record quiz using a safe score.
+      // Because setScore is async, use current `score` which is already correct due to choose() guard.
+      recordGrammarQuiz({ score: finalScore, total });
+      setI(total);
+      return;
+    }
+
+    setI(nextIndex);
+  }
 
   // end screen
   if (started && i >= total) {
@@ -102,9 +104,7 @@ function next() {
           <p className="mt-2 text-5xl font-black">
             {score} / {total}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
-            XP awarded automatically.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">Saved to progress + XP awarded.</p>
         </div>
 
         <button
@@ -124,15 +124,13 @@ function next() {
         <div>
           <h1 className="text-3xl font-black tracking-tight">Grammar</h1>
           <p className="mt-2 text-slate-600">
-            Quick quiz: rules + examples. Save stats to your progress.
+            Quick quiz: rules + examples. Results are saved in your progress.
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-2">
           <p className="font-semibold">Quiz length: {total} questions</p>
-          <p className="text-sm text-slate-600">
-            Later: questions can be generated from your weak areas.
-          </p>
+          <p className="text-sm text-slate-600">Later: questions can be personalized.</p>
         </div>
 
         <button
@@ -159,6 +157,7 @@ function next() {
         <p className="text-sm text-slate-500">
           Question {i + 1} / {total}
         </p>
+
         <p className="mt-4 text-2xl font-black">{q.prompt}</p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -202,4 +201,5 @@ function next() {
     </div>
   );
 }
+
 
