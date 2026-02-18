@@ -16,29 +16,24 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const {
-    xp = 0,
-    streakDays = 0,
-    lastStreakDay = null,
-    sessions = 0,
-    accuracy = 0,
-    lastPractice,
-    grammar,
-  } = p;
+  const xp = p.xp ?? 0;
+  const streakDays = p.streakDays ?? 0;
+  const lastStreakDay = p.lastStreakDay ?? "—";
 
-  const practiceScoreText = lastPractice
-    ? `${lastPractice.score} / ${lastPractice.total}`
-    : "—";
+  const practice = p.practice ?? {};
+  const grammar = p.grammar ?? {};
 
-  const grammarSessionsText = grammar?.sessions ?? 0;
+  const practiceAccuracy = practice.total > 0 ? `${practice.accuracy}%` : "—";
+  const grammarAccuracy = grammar.total > 0 ? `${grammar.accuracy}%` : "—";
 
-  const grammarAccuracyText =
-    grammarSessionsText > 0 && (grammar?.total ?? 0) > 0
-      ? `${grammar.accuracy}%`
+  const lastPracticeText =
+    practice.lastPractice?.total > 0
+      ? `${practice.lastPractice.score} / ${practice.lastPractice.total}`
       : "—";
 
+  const lastGrammarText =
+    grammar.lastQuiz?.total > 0 ? `${grammar.lastQuiz.score} / ${grammar.lastQuiz.total}` : "—";
 
-  // Duolingo-ish leveling: every 200 XP = next level
   const { level, xpIntoLevel, xpToNext, pct } = useMemo(() => {
     const levelSize = 200;
     const level = Math.floor(xp / levelSize) + 1;
@@ -56,10 +51,6 @@ export default function DashboardPage() {
     navigate(`/practice/session/${id}`);
   }
 
-  function startGrammar() {
-    navigate("/grammar");
-  }
-
   return (
     <div className="space-y-8">
       <header className="space-y-2">
@@ -69,7 +60,6 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      {/* Top action row */}
       <section className="grid gap-4 md:grid-cols-3">
         <ActionCard
           title="Continue Practice"
@@ -81,13 +71,13 @@ export default function DashboardPage() {
           title="Continue Grammar"
           desc="Quick quiz: rules + examples."
           button="Open"
-          onClick={startGrammar}
+          onClick={() => navigate("/grammar")}
         />
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <p className="text-sm font-semibold text-slate-500">Daily streak</p>
           <p className="mt-2 text-4xl font-black">{streakDays} 🔥</p>
           <p className="mt-2 text-sm text-slate-600">
-            Last active: <span className="font-semibold">{lastStreakDay ?? "—"}</span>
+            Last active: <span className="font-semibold">{lastStreakDay}</span>
           </p>
           <p className="mt-1 text-xs text-slate-400">
             Tip: complete 1 session/day to grow streak.
@@ -95,7 +85,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* XP Progress */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
         <div className="flex items-end justify-between gap-4">
           <div>
@@ -104,12 +93,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="text-right">
-            <p className="text-sm text-slate-600">
-              {xpIntoLevel} / 200 XP
-            </p>
-            <p className="text-xs text-slate-400">
-              {xpToNext} XP to next level
-            </p>
+            <p className="text-sm text-slate-600">{xpIntoLevel} / 200 XP</p>
+            <p className="text-xs text-slate-400">{xpToNext} XP to next level</p>
           </div>
         </div>
 
@@ -121,14 +106,21 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Stats grid */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-5">
         <StatCard label="XP" value={xp} />
-        <StatCard label="Practice Sessions" value={sessions} />
-        <StatCard label="Practice Accuracy" value={`${accuracy}%`} />
-        <StatCard label="Last Practice" value={practiceScoreText} />
-        <StatCard label="Grammar" value={`${grammarSessionsText} sessions • ${grammarAccuracyText}`} />
-
+        <StatCard label="Practice Sessions" value={practice.sessions ?? 0} />
+        <StatCard label="Practice Accuracy" value={practiceAccuracy} />
+        <StatCard label="Last Practice" value={lastPracticeText} />
+        <StatCard
+          label="Grammar"
+          value={
+            <div className="space-y-1">
+              <div className="text-3xl font-black">{grammar.sessions ?? 0} sessions</div>
+              <div className="text-sm text-slate-600">Accuracy: {grammarAccuracy}</div>
+              <div className="text-sm text-slate-600">Last: {lastGrammarText}</div>
+            </div>
+          }
+        />
       </section>
     </div>
   );
@@ -153,16 +145,11 @@ function StatCard({ label, value }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-black">{value}</p>
+      <div className="mt-2">{typeof value === "string" || typeof value === "number" ? (
+        <p className="text-3xl font-black">{value}</p>
+      ) : (
+        value
+      )}</div>
     </div>
   );
 }
-
-import { resetGrammarStats } from "../../utils/progressStorage";
-
-<button
-  onClick={resetGrammarStats}
-  className="rounded-xl border px-4 py-2"
->
-  Reset Grammar Stats
-</button>

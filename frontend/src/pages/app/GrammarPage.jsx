@@ -43,7 +43,6 @@ export default function GrammarPage() {
   const [started, setStarted] = useState(false);
   const [i, setI] = useState(0);
   const [score, setScore] = useState(0);
-
   const [picked, setPicked] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
 
@@ -58,38 +57,26 @@ export default function GrammarPage() {
   }
 
   function choose(option) {
-    if (!q || showFeedback) return; // prevents double answering
+    if (!q || showFeedback) return;
 
     setPicked(option);
     setShowFeedback(true);
 
-    if (option === q.answer) {
-      setScore((s) => s + 1);
-    }
+    if (option === q.answer) setScore((s) => s + 1);
   }
 
   function next() {
-    // If not showing feedback, ignore
-    if (!showFeedback) return;
-
-    // compute the score that should be recorded if we're finishing
-    const answeredCorrect = picked === q.answer;
-    const finalScore = answeredCorrect ? score : score; // score already updated in choose()
-
     const nextIndex = i + 1;
 
-    // reset UI for next question
     setPicked(null);
     setShowFeedback(false);
 
     if (nextIndex >= total) {
-      // IMPORTANT: record quiz using a safe score.
-      // Because setScore is async, use current `score` which is already correct due to choose() guard.
-      recordGrammarQuiz({ score: finalScore, total });
+      // record quiz stats
+      recordGrammarQuiz({ score, total });
       setI(total);
       return;
     }
-
     setI(nextIndex);
   }
 
@@ -104,7 +91,7 @@ export default function GrammarPage() {
           <p className="mt-2 text-5xl font-black">
             {score} / {total}
           </p>
-          <p className="mt-2 text-sm text-slate-500">Saved to progress + XP awarded.</p>
+          <p className="mt-2 text-sm text-slate-500">XP awarded automatically.</p>
         </div>
 
         <button
@@ -124,13 +111,15 @@ export default function GrammarPage() {
         <div>
           <h1 className="text-3xl font-black tracking-tight">Grammar</h1>
           <p className="mt-2 text-slate-600">
-            Quick quiz: rules + examples. Results are saved in your progress.
+            Quick quiz: rules + examples. Save stats to your progress.
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-2">
           <p className="font-semibold">Quiz length: {total} questions</p>
-          <p className="text-sm text-slate-600">Later: questions can be personalized.</p>
+          <p className="text-sm text-slate-600">
+            Later: questions can be generated from your weak areas.
+          </p>
         </div>
 
         <button
@@ -143,7 +132,6 @@ export default function GrammarPage() {
     );
   }
 
-  // quiz screen
   const correct = picked === q.answer;
 
   return (
@@ -201,5 +189,4 @@ export default function GrammarPage() {
     </div>
   );
 }
-
 
