@@ -1,15 +1,18 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.api.settings import settings
+from dotenv import load_dotenv
 
-engine = create_engine(settings.DB_URL, pool_pre_ping=True)
+load_dotenv()
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+DB_URL = os.getenv("DB_URL")
 
+engine = create_engine(DB_URL, future=True)
+
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 class Base(DeclarativeBase):
     pass
-
 
 def get_db():
     db = SessionLocal()
@@ -17,3 +20,5 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
