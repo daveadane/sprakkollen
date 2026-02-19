@@ -20,25 +20,48 @@ export default function LoginPage() {
     if (!email.includes("@")) return setError("Please enter a valid email.");
     if (!password) return setError("Password is required.");
 
-    // Frontend-only login: accept any credentials for now
+    const storedUser = JSON.parse(localStorage.getItem("sprakkollen_user"));
+
+    if (!storedUser) {
+      return setError("No account found. Please register first.");
+    }
+
+    if (storedUser.email !== email.trim()) {
+      return setError("Email does not match registered account.");
+    }
+
+    // Fake login success
     login("demo-token");
     localStorage.setItem("sprakkollen_token", "demo-token");
 
-    nav("/app");
+    nav("/dashboard");   // ✅ correct route
   }
 
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-black">Login</h1>
-      <p className="mt-1 text-sm text-slate-600">Access your practice and progress.</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Access your practice and progress.
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <FormField label="Email">
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
         </FormField>
 
         <FormField label="Password">
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" />
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••"
+            autoComplete="current-password"
+          />
         </FormField>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -49,7 +72,10 @@ export default function LoginPage() {
 
         <p className="text-sm text-slate-600">
           No account?{" "}
-          <Link className="font-semibold text-blue-700 hover:underline" to="/register">
+          <Link
+            className="font-semibold text-blue-700 hover:underline"
+            to="/register"
+          >
             Register
           </Link>
         </p>
