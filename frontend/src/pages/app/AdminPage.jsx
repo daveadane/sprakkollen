@@ -16,6 +16,7 @@ export default function AdminPage() {
       const json = await res.json();
       setData(json);
     } catch (e) {
+        console.error("Admin load error:", e);
       setErr("Could not load admin DB info. Is FastAPI running on port 8000?");
     } finally {
       setLoading(false);
