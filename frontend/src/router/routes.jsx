@@ -11,6 +11,8 @@ import RegisterPage from "../pages/public/RegisterPage";
 import GrammarPage from "../pages/app/GrammarPage";
 import ProfilePage from "../pages/app/ProfilePage";
 import SessionPage from "../pages/app/SessionPage";
+import AdminPage from "../pages/app/AdminPage";
+
 
 
 
@@ -20,6 +22,7 @@ import CheckerPage from "../pages/app/CheckerPage";
 import PracticePage from "../pages/app/PracticePage";
 import VocabularyPage from "../pages/app/VocabularyPage";
 import ProgressPage from "../pages/app/ProgressPage";
+
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +44,8 @@ export const router = createBrowserRouter([
       { path: "/grammar", element: <GrammarPage /> },
       { path: "/progress", element: <ProgressPage /> },
       { path: "/profile", element: <ProfilePage /> },
+      { path: "/admin", element: <AdminPage /> },
+
 
     ],
   },

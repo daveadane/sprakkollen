@@ -6,6 +6,7 @@ from app.api import models  # IMPORTANT: ensures models are registered
 
 from app.api.endpoints.general import router as general_router
 from app.api.endpoints.lookup import router as lookup_router
+from app.api.endpoints.admin import router as admin_router
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
 
@@ -23,6 +24,8 @@ def on_startup():
   Base.metadata.create_all(bind=engine)
 
 app.include_router(general_router, prefix="/api")
-app.include_router(lookup_router, prefix="/api")
+app.include_router(lookup_router)
+app.include_router(admin_router, prefix="/api")
+
 
 

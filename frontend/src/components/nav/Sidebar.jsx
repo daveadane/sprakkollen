@@ -58,6 +58,16 @@ export default function Sidebar() {
         >
           Progress
         </NavLink>
+
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? active : inactive}`
+          }
+        >
+          Admin
+        </NavLink>
+
       </nav>
     </aside>
   );
