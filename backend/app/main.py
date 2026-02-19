@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.endpoints.vocab import router as vocab_router
 
 from app.api.db_setup import engine, Base
 from app.api import models  # IMPORTANT: ensures models are registered
@@ -26,6 +27,6 @@ def on_startup():
 app.include_router(general_router, prefix="/api")
 app.include_router(lookup_router)
 app.include_router(admin_router, prefix="/api")
-
+app.include_router(vocab_router, prefix="/api")
 
 
