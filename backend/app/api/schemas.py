@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Literal, Optional
 
 Article = Literal["en", "ett"]
@@ -24,7 +24,7 @@ class VocabOut(BaseModel):
 
 class RegisterIn(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str = Field(min_length=6, max_length=72)  # bcrypt limit
     first_name: Optional[str] = None
     last_name: Optional[str] = None
 

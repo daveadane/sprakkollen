@@ -1,4 +1,12 @@
 from __future__ import annotations
+from datetime import datetime
+from typing import Optional, List
+
+from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, UniqueConstraint, Index, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.api.db_setup import Base
+
 
 from datetime import datetime
 from typing import List, Optional
@@ -140,3 +148,19 @@ class GrammarAnswer(Base):
     session: Mapped["GrammarSession"] = relationship(back_populates="answers")
 
 
+
+
+
+class Token(Base):
+    __tablename__ = "tokens"
+    __table_args__ = (
+        Index("ix_tokens_user_created", "user_id", "created_at"),
+        UniqueConstraint("token", name="uq_token_token"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User")
