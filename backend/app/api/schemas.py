@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from typing import Literal, Optional
 
 Article = Literal["en", "ett"]
@@ -21,3 +21,13 @@ class VocabOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RegisterIn(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
