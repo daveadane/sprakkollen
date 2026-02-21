@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 Article = Literal["en", "ett"]
 
@@ -50,3 +50,13 @@ class UserOut(BaseModel):
 
 class UserRoleUpdate(BaseModel):
     is_admin: bool
+
+class LookupOut(BaseModel):
+    word: str
+    article: Optional[str] = None
+    confidence: Optional[float] = None
+    source: str
+    examples: List[str] = []
+
+    class Config:
+        from_attributes = True

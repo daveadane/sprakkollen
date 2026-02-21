@@ -1,0 +1,14 @@
+[
+  {
+    "word": "hus",
+    "article": "ett",
+    "confidence": 0.92,
+    "examples": ["ett hus", "ett stort hus"]
+  },
+  {
+    "word": "bil",
+    "article": "en",
+    "confidence": 0.85,
+    "examples": ["en bil", "en röd bil"]
+  }
+]

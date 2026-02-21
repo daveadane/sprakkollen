@@ -26,7 +26,7 @@ def on_startup():
   Base.metadata.create_all(bind=engine)
 
 app.include_router(general_router, prefix="/api")
-app.include_router(lookup_router)
+app.include_router(lookup_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 app.include_router(vocab_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
