@@ -89,6 +89,15 @@ def get_current_user(
         )
     return user
 
+def get_current_admin_user(
+    user: User = Depends(get_current_user),
+) -> User:
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return user
 
 def get_current_token(
     token: Annotated[str, Depends(oauth2_scheme)],
