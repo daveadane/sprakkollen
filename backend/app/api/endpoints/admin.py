@@ -6,6 +6,11 @@ from app.api.db_setup import get_db
 from app.api.models import User
 from app.api.schemas import UserOut, UserRoleUpdate
 from app.api.security import require_admin
+from datetime import datetime, timedelta
+from sqlalchemy import func
+
+from app.api.models import LookupCache
+from app.api.settings import settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -57,3 +62,36 @@ def delete_user(
     db.delete(user)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/admin/cache-stats")
+def cache_stats(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    ttl_delta = timedelta(minutes=settings.LOOKUP_CACHE_TTL_MINUTES)
+    now = datetime.utcnow()
+
+    total = db.query(func.count(LookupCache.id)).scalar()
+
+    oldest = db.query(func.min(LookupCache.updated_at)).scalar()
+    newest = db.query(func.max(LookupCache.updated_at)).scalar()
+
+    rows = db.query(LookupCache.updated_at).all()
+
+    fresh = 0
+    expired = 0
+
+    for (updated_at,) in rows:
+        if (now - updated_at) <= ttl_delta:
+            fresh += 1
+        else:
+            expired += 1
+
+    return {
+        "total_entries": total,
+        "fresh_entries": fresh,
+        "expired_entries": expired,
+        "oldest_entry": oldest,
+        "newest_entry": newest,
+        "ttl_minutes": settings.LOOKUP_CACHE_TTL_MINUTES,
+    }

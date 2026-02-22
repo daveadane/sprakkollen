@@ -44,6 +44,12 @@ class User(Base):
     vocab_words: Mapped[List["VocabularyWord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     practice_sessions: Mapped[List["PracticeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     grammar_sessions: Mapped[List["GrammarSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+   
+    search_history = relationship(
+    "SearchHistory",
+    back_populates="user",
+    cascade="all, delete-orphan",
+)
 
 
 class VocabularyWord(Base):
@@ -164,3 +170,22 @@ class Token(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship("User")
+
+class SearchHistory(Base):
+    __tablename__ = "search_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    word: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="search_history")
+
+
+
+
+
+
+    

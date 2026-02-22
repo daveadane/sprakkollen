@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     JWT_SECRET: str = Field("change-me", alias="JWT_SECRET")
     JWT_ALG: str = Field("HS256", alias="JWT_ALG")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
-
+    
     API_PREFIX: str = Field("/api", alias="API_PREFIX")
     CORS_ORIGINS: str = Field("http://localhost:5173", alias="CORS_ORIGINS")
-
+    LOOKUP_CACHE_TTL_MINUTES: int = 1  # example: 60 minutes
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]

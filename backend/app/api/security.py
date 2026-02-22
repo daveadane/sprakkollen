@@ -112,3 +112,8 @@ def get_current_token(
     db: Session = Depends(get_db),
 ) -> Token:
     return verify_token_access(token_str=token, db=db)
+
+def get_current_admin(user: User = Depends(get_current_user)):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+    return user
