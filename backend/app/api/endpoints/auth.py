@@ -1,5 +1,10 @@
 # app/api/endpoints/auth.py
 
+from __future__ import annotations
+
+import hashlib
+import secrets
+from datetime import datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -9,8 +14,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.db_setup import get_db
-from app.api.models import User, Token
-from app.api.schemas import RegisterIn, TokenOut  # adjust names if yours differ
+from app.api.models import User, Token, RefreshToken
+from app.api.schemas import RegisterIn, TokenOut, RefreshIn
 from app.api.security import (
     create_database_token,
     get_current_token,
@@ -18,10 +23,32 @@ from app.api.security import (
     hash_password,
     verify_password,
 )
+from app.api.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+# -------------------------
+# Refresh token helpers
+# -------------------------
+def _new_refresh_token() -> str:
+    # URL-safe random token (raw token is returned to client)
+    return secrets.token_urlsafe(48)
+
+
+def _hash_refresh_token(raw_token: str) -> str:
+    # Store ONLY the hash in DB (never store raw refresh token)
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+def _refresh_expires_at() -> datetime:
+    days = int(getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7))
+    return datetime.utcnow() + timedelta(days=days)
+
+
+# -------------------------
+# Routes
+# -------------------------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterIn, db: Session = Depends(get_db)):
     """
@@ -59,15 +86,14 @@ def login(
     OAuth2 login endpoint. Expects form fields:
       - username (email)
       - password
-    Returns a bearer token stored in DB (Token table).
+
+    Returns:
+      - access_token: stored in DB (Token table)
+      - refresh_token: stored hashed in DB (RefreshToken table)
     """
     email = (form_data.username or "").strip().lower()
 
-    user = (
-        db.execute(select(User).where(User.email == email))
-        .scalars()
-        .first()
-    )
+    user = db.execute(select(User).where(User.email == email)).scalars().first()
 
     if not user:
         raise HTTPException(
@@ -90,8 +116,88 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # 1) Create access token (DB token)
     token_obj: Token = create_database_token(user_id=user.id, db=db)
-    return TokenOut(access_token=token_obj.token, token_type="bearer")
+
+    # 2) Create refresh token (raw for client, hash in DB)
+    refresh_raw = _new_refresh_token()
+    refresh_hash = _hash_refresh_token(refresh_raw)
+
+    db.add(
+        RefreshToken(
+            user_id=user.id,
+            token_hash=refresh_hash,
+            expires_at=_refresh_expires_at(),
+            revoked_at=None,
+        )
+    )
+    db.commit()
+
+    return TokenOut(
+        access_token=token_obj.token,
+        refresh_token=refresh_raw,
+        token_type="bearer",
+    )
+
+
+@router.post("/refresh", response_model=TokenOut)
+def refresh_access_token(payload: RefreshIn, db: Session = Depends(get_db)) -> TokenOut:
+    """
+    Option B (rotation):
+    - Verify refresh token
+    - Revoke it
+    - Issue a NEW refresh token + NEW access token
+    """
+    raw = (payload.refresh_token or "").strip()
+    if not raw:
+        raise HTTPException(status_code=422, detail="refresh_token is required")
+
+    token_hash = _hash_refresh_token(raw)
+
+    row = (
+        db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+        .scalars()
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    if row.revoked_at is not None:
+        raise HTTPException(status_code=401, detail="Refresh token revoked")
+
+    if row.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    user = db.execute(select(User).where(User.id == row.user_id)).scalars().first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    # Rotate: revoke old refresh token
+    row.revoked_at = datetime.utcnow()
+
+    # Issue new refresh token
+    new_refresh_raw = _new_refresh_token()
+    new_refresh_hash = _hash_refresh_token(new_refresh_raw)
+
+    db.add(
+        RefreshToken(
+            user_id=user.id,
+            token_hash=new_refresh_hash,
+            expires_at=_refresh_expires_at(),
+            revoked_at=None,
+        )
+    )
+
+    # New access token (DB token)
+    new_access: Token = create_database_token(user_id=user.id, db=db)
+
+    db.commit()
+
+    return TokenOut(
+        access_token=new_access.token,
+        refresh_token=new_refresh_raw,
+        token_type="bearer",
+    )
 
 
 @router.get("/me")
@@ -116,8 +222,32 @@ def logout(
     db: Session = Depends(get_db),
 ):
     """
-    Delete the current token from DB so it can't be used again.
+    Deletes ONLY the current access token from DB so it can't be used again.
+    (Refresh tokens remain valid unless revoked via /logout-refresh.)
     """
     db.delete(current_token)
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/logout-refresh", status_code=status.HTTP_204_NO_CONTENT)
+def logout_refresh(payload: RefreshIn, db: Session = Depends(get_db)):
+    """
+    Revoke a refresh token (client sends refresh_token).
+    """
+    raw = (payload.refresh_token or "").strip()
+    if not raw:
+        raise HTTPException(status_code=422, detail="refresh_token is required")
+
+    token_hash = _hash_refresh_token(raw)
+
+    row = (
+        db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+        .scalars()
+        .first()
+    )
+    if row and row.revoked_at is None:
+        row.revoked_at = datetime.utcnow()
+        db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)

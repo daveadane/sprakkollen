@@ -1,6 +1,8 @@
 import base64
+import hashlib
 from datetime import datetime, timedelta, UTC
 from random import SystemRandom
+import secrets
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -117,3 +119,10 @@ def get_current_admin(user: User = Depends(get_current_user)):
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
     return user
+
+def hash_refresh_token(token: str) -> str:
+    # Use a strong hash function to hash the refresh token before storing
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+def new_refresh_token() -> str:
+    return secrets.token_urlsafe(48)  # 48 bytes -> 64 chars URL-safe string

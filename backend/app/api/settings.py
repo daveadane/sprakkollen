@@ -8,7 +8,9 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = Field("change-me", alias="JWT_SECRET")
     JWT_ALG: str = Field("HS256", alias="JWT_ALG")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    JWT_REFRESH_SECRET: str = Field("change-me-refresh", alias="JWT_REFRESH_SECRET")
     
     API_PREFIX: str = Field("/api", alias="API_PREFIX")
     CORS_ORIGINS: str = Field("http://localhost:5173", alias="CORS_ORIGINS")
