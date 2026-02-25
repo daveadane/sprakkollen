@@ -7,7 +7,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -79,6 +79,7 @@ def register(payload: RegisterIn, db: Session = Depends(get_db)):
 
 @router.post("/token", response_model=TokenOut)
 def login(
+    response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ) -> TokenOut:
@@ -132,25 +133,31 @@ def login(
         )
     )
     db.commit()
-
+    response.set_cookie(
+        key="sprakkollen_refresh",
+        value=refresh_raw,
+        httponly=True,
+        secure=False,  # True in HTTPS prod
+        samesite="lax",
+        max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS,
+        path="/",
+)
     return TokenOut(
         access_token=token_obj.token,
-        refresh_token=refresh_raw,
         token_type="bearer",
     )
 
 
 @router.post("/refresh", response_model=TokenOut)
-def refresh_access_token(payload: RefreshIn, db: Session = Depends(get_db)) -> TokenOut:
-    """
-    Option B (rotation):
-    - Verify refresh token
-    - Revoke it
-    - Issue a NEW refresh token + NEW access token
-    """
-    raw = (payload.refresh_token or "").strip()
+def refresh_access_token(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> TokenOut:
+
+    raw = request.cookies.get("sprakkollen_refresh")
     if not raw:
-        raise HTTPException(status_code=422, detail="refresh_token is required")
+        raise HTTPException(status_code=401, detail="Missing refresh cookie")
 
     token_hash = _hash_refresh_token(raw)
 
@@ -159,23 +166,21 @@ def refresh_access_token(payload: RefreshIn, db: Session = Depends(get_db)) -> T
         .scalars()
         .first()
     )
-    if not row:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    if row.revoked_at is not None:
-        raise HTTPException(status_code=401, detail="Refresh token revoked")
+    if not row or row.revoked_at is not None:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     if row.expires_at < datetime.utcnow():
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
     user = db.execute(select(User).where(User.id == row.user_id)).scalars().first()
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found or inactive")
+        raise HTTPException(status_code=401, detail="User not found")
 
-    # Rotate: revoke old refresh token
+    # revoke old
     row.revoked_at = datetime.utcnow()
 
-    # Issue new refresh token
+    # new refresh
     new_refresh_raw = _new_refresh_token()
     new_refresh_hash = _hash_refresh_token(new_refresh_raw)
 
@@ -188,16 +193,22 @@ def refresh_access_token(payload: RefreshIn, db: Session = Depends(get_db)) -> T
         )
     )
 
-    # New access token (DB token)
-    new_access: Token = create_database_token(user_id=user.id, db=db)
-
+    # new access
+    new_access = create_database_token(user_id=user.id, db=db)
     db.commit()
 
-    return TokenOut(
-        access_token=new_access.token,
-        refresh_token=new_refresh_raw,
-        token_type="bearer",
+    # rotate cookie
+    response.set_cookie(
+        key="sprakkollen_refresh",
+        value=new_refresh_raw,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        path="/",
+        max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS,
     )
+
+    return TokenOut(access_token=new_access.token, token_type="bearer")
 
 
 @router.get("/me")
