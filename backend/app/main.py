@@ -13,13 +13,14 @@ from app.api.endpoints.history import router as history_router
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
 
+from app.api.settings import settings
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-
 )
 
 # ✅ Auto-create tables (NO Alembic)
