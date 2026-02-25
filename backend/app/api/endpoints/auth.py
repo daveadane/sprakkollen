@@ -227,38 +227,37 @@ def me(current_user: User = Depends(get_current_user)):
     }
 
 
-@router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/logout")
 def logout(
+    request: Request,
+    response: Response,
     current_token: Token = Depends(get_current_token),
     db: Session = Depends(get_db),
 ):
-    """
-    Deletes ONLY the current access token from DB so it can't be used again.
-    (Refresh tokens remain valid unless revoked via /logout-refresh.)
-    """
+    # 1) delete current access token (DB token)
     db.delete(current_token)
+
+    # 2) revoke refresh token from cookie (if present)
+    raw = request.cookies.get("sprakkollen_refresh")
+    if raw:
+        token_hash = _hash_refresh_token(raw)
+        row = (
+            db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+            .scalars()
+            .first()
+        )
+        if row and row.revoked_at is None:
+            row.revoked_at = datetime.utcnow()
+
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-
-@router.post("/logout-refresh", status_code=status.HTTP_204_NO_CONTENT)
-def logout_refresh(payload: RefreshIn, db: Session = Depends(get_db)):
-    """
-    Revoke a refresh token (client sends refresh_token).
-    """
-    raw = (payload.refresh_token or "").strip()
-    if not raw:
-        raise HTTPException(status_code=422, detail="refresh_token is required")
-
-    token_hash = _hash_refresh_token(raw)
-
-    row = (
-        db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
-        .scalars()
-        .first()
+    # 3) clear cookie
+    response.delete_cookie(
+        key="sprakkollen_refresh",
+        path="/",
+        httponly=True,
+        secure=False,   # True in HTTPS prod
+        samesite="lax",
     )
-    if row and row.revoked_at is None:
-        row.revoked_at = datetime.utcnow()
-        db.commit()
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return {"message": "Logged out"}

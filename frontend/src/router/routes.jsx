@@ -1,7 +1,9 @@
+// routes.jsx
 import { createBrowserRouter } from "react-router-dom";
 
 import PublicLayout from "../layouts/PublicLayout";
 import AppLayout from "../layouts/AppLayout";
+import ProtectedRoute from "./ProtectedRoute"; // ✅ adjust path if needed
 
 // public pages
 import LandingPage from "../pages/public/LandingPage";
@@ -34,19 +36,24 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // APP (internal)
+  // ✅ PROTECTED APP
   {
-    element: <AppLayout />,
+    element: <ProtectedRoute />, // ✅ gate everything below
     children: [
-      { path: "/dashboard", element: <DashboardPage /> },
-      { path: "/checker", element: <CheckerPage /> },
-      { path: "/practice", element: <PracticePage /> },
-      { path: "/practice/session/:id", element: <SessionPage /> },
-      { path: "/vocabulary", element: <VocabularyPage /> },
-      { path: "/progress", element: <ProgressPage /> },
-      { path: "/grammar", element: <GrammarPage /> },
-      { path: "/profile", element: <ProfilePage /> },
-      { path: "/admin", element: <AdminPage /> },
+      {
+        element: <AppLayout />, // ✅ only reachable if logged in
+        children: [
+          { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/checker", element: <CheckerPage /> },
+          { path: "/practice", element: <PracticePage /> },
+          { path: "/practice/session/:id", element: <SessionPage /> },
+          { path: "/vocabulary", element: <VocabularyPage /> },
+          { path: "/progress", element: <ProgressPage /> },
+          { path: "/grammar", element: <GrammarPage /> },
+          { path: "/profile", element: <ProfilePage /> },
+          { path: "/admin", element: <AdminPage /> },
+        ],
+      },
     ],
   },
 ]);

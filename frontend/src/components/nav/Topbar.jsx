@@ -1,6 +1,7 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { loadProgress } from "../../utils/progressStorage";
+import useAuth from "../../state/useAuth";
 
 function getTitle(pathname) {
   if (pathname.startsWith("/dashboard")) return "Dashboard";
@@ -16,6 +17,9 @@ function getTitle(pathname) {
 
 export default function Topbar() {
   const location = useLocation();
+  const nav = useNavigate();
+  const { user, ready, logout } = useAuth();
+
   const [p, setP] = useState(() => loadProgress());
 
   useEffect(() => {
@@ -31,6 +35,16 @@ export default function Topbar() {
   const title = useMemo(() => getTitle(location.pathname), [location.pathname]);
   const xp = p?.xp ?? 0;
 
+  const initial = (user?.first_name?.[0] || user?.email?.[0] || "U").toUpperCase();
+
+  async function onLogout() {
+    try {
+      await logout();
+    } finally {
+      nav("/login", { replace: true });
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -43,12 +57,41 @@ export default function Topbar() {
             XP: {xp}
           </span>
 
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-black text-white">
-            U
-          </div>
+          {!ready ? null : user ? (
+            <>
+              <span className="hidden text-sm text-slate-600 sm:inline">
+                {user.email}
+              </span>
+
+              <button
+                onClick={onLogout}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+              >
+                Logout
+              </button>
+
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-black text-white">
+                {initial}
+              </div>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:opacity-95"
+              >
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
   );
 }
-
