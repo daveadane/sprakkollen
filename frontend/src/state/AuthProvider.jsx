@@ -1,13 +1,8 @@
-import { createContext, useEffect, useMemo, useState } from "react";
-import {
-  login as apiLogin,
-  logout as apiLogout,
-  me,
-  refresh,
-} from "../utils/authApi";
+import { useEffect, useMemo, useState } from "react";
+import {login as apiLogin,logout as apiLogout, me,refresh,} from "../utils/authApi";
 import { clearAccessToken } from "./auth_store";
+import { AuthContext } from "./authContext";
 
-export const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -24,7 +19,7 @@ export default function AuthProvider({ children }) {
         await refresh();        // expects cookie, sets access token in memory
         const u = await me();   // uses access token
         if (alive) setUser(u);
-      } catch (err) {
+      } catch {
         clearAccessToken();
         if (alive) setUser(null);
       } finally {
