@@ -99,3 +99,58 @@ class PracticeSessionAdminOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     questions: List[PracticeQuestionAdminOut]
+
+# ---------- Practice ----------
+class PracticeSubmitItem(BaseModel):
+    word: str
+    chosen: Article
+
+class PracticeSubmitIn(BaseModel):
+    answers: List[PracticeSubmitItem]
+
+class PracticeResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+
+# ---------- Grammar ----------
+class GrammarQuestionOut(BaseModel):
+    question_id: int
+    question: str
+    choices: List[str]
+
+class GrammarSessionOut(BaseModel):
+    id: int
+    questions: List[GrammarQuestionOut]
+
+class GrammarAnswerIn(BaseModel):
+    question_id: int
+    chosen: str
+
+class GrammarSubmitIn(BaseModel):
+    answers: List[GrammarAnswerIn]
+
+class GrammarResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+
+# ---------- Progress ----------
+class ProgressLastResult(BaseModel):
+    score: int
+    total: int
+
+class ProgressBlock(BaseModel):
+    sessions: int
+    correct: int
+    total: int
+    accuracy: int
+    last: Optional[ProgressLastResult] = None
+
+class ProgressOut(BaseModel):
+    xp: int
+    streakDays: int
+    lastStreakDay: Optional[str] = None
+    practice: ProgressBlock
+    grammar: ProgressBlock
+    weakWords: List[str] = []

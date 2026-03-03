@@ -11,6 +11,8 @@ from app.api.endpoints.admin import router as admin_router
 from app.api.endpoints.auth import router as auth_router
 from app.api.endpoints.history import router as history_router
 from app.api.endpoints.practice import router as practice_router
+from app.api.endpoints.grammar import router as grammar_router
+from app.api.endpoints.progress import router as progress_router
 
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
@@ -37,5 +39,7 @@ app.include_router(vocab_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(practice_router, prefix="/api")
+app.include_router(grammar_router, prefix="/api")
+app.include_router(progress_router, prefix="/api")
 
 

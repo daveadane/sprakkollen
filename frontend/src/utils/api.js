@@ -1,24 +1,26 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000/api";
+import axios from "axios";
+import { getAccessToken, clearAccessToken } from "../state/auth_store";
 
-export async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    credentials: "include", // IMPORTANT: sends/receives cookies
-    headers: {
-      ...(options.headers || {}),
-    },
-  });
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
+  withCredentials: true, // safe even if you remove refresh tokens
+});
 
-  const ct = res.headers.get("content-type") || "";
-  let data = null;
-  if (ct.includes("application/json")) data = await res.json();
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-  if (!res.ok) {
-    const msg = data?.detail || data?.message || `HTTP ${res.status}`;
-    const err = new Error(msg);
-    err.status = res.status;
-    throw err;
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401) {
+      // token invalid/expired => kick user out
+      clearAccessToken();
+    }
+    return Promise.reject(err);
   }
+);
 
-  return data;
-}
+export default api;
