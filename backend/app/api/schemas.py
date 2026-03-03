@@ -72,3 +72,23 @@ class SearchHistoryOut(BaseModel):
     word: str
     created_at: datetime
 
+# --- Practice schemas ---
+
+class PracticeQuestionOut(BaseModel):
+    word: str
+
+
+class PracticeSessionOut(BaseModel):
+    id: int
+    questions: List[PracticeQuestionOut]
+
+
+# admin/debug only)
+class PracticeQuestionAdminOut(BaseModel):
+    word: str
+    correct_article: Article
+
+
+class PracticeSessionAdminOut(BaseModel):
+    id: int
+    questions: List[PracticeQuestionAdminOut]

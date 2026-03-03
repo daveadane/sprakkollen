@@ -101,7 +101,21 @@ class PracticeSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="practice_sessions")
+    questions: Mapped[List["PracticeQuestion"]] = relationship(
+                back_populates="session", cascade="all, delete-orphan"),
+
+
     answers: Mapped[List["PracticeAnswer"]] = relationship(back_populates="session", cascade="all, delete-orphan")
+
+class PracticeQuestion(Base):
+    __tablename__ = "practice_questions"
+    __table_args__ = (Index("ix_practice_question_session", "session_id"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("practice_sessions.id", ondelete="CASCADE"), nullable=False)
+    word: Mapped[str] = mapped_column(String(120), nullable=False)
+    correct_article: Mapped[str] = mapped_column(String(10), nullable=False)  # "en" or "ett"
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    session: Mapped["PracticeSession"] = relationship(back_populates="questions")
 
 
 class PracticeAnswer(Base):
