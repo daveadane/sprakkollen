@@ -74,21 +74,28 @@ class SearchHistoryOut(BaseModel):
 
 # --- Practice schemas ---
 
+class PracticeSessionCreateOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class PracticeQuestionOut(BaseModel):
     word: str
 
 
 class PracticeSessionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     questions: List[PracticeQuestionOut]
 
 
-# admin/debug only)
+# admin/debug only
 class PracticeQuestionAdminOut(BaseModel):
     word: str
     correct_article: Article
 
 
 class PracticeSessionAdminOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     questions: List[PracticeQuestionAdminOut]

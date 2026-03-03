@@ -102,9 +102,7 @@ class PracticeSession(Base):
 
     user: Mapped["User"] = relationship(back_populates="practice_sessions")
     questions: Mapped[List["PracticeQuestion"]] = relationship(
-                back_populates="session", cascade="all, delete-orphan"),
-
-
+                back_populates="session", cascade="all, delete-orphan")
     answers: Mapped[List["PracticeAnswer"]] = relationship(back_populates="session", cascade="all, delete-orphan")
 
 class PracticeQuestion(Base):
@@ -166,9 +164,6 @@ class GrammarAnswer(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     session: Mapped["GrammarSession"] = relationship(back_populates="answers")
-
-
-
 
 
 class Token(Base):

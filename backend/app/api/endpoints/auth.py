@@ -1,14 +1,10 @@
-# app/api/endpoints/auth.py
-
-from __future__ import annotations
-
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.api.db_setup import get_db
 from app.api.models import User, Token
@@ -24,9 +20,6 @@ from app.api.security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-# -------------------------
-# REGISTER
-# -------------------------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterIn, db: Session = Depends(get_db)):
     email = payload.email.strip().lower()
@@ -51,50 +44,27 @@ def register(payload: RegisterIn, db: Session = Depends(get_db)):
     return {"id": new_user.id, "email": new_user.email}
 
 
-# -------------------------
-# LOGIN (ACCESS TOKEN ONLY)
-# -------------------------
 @router.post("/token", response_model=TokenOut)
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
 ) -> TokenOut:
-
     email = (form_data.username or "").strip().lower()
 
     user = db.execute(select(User).where(User.email == email)).scalars().first()
-
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User does not exist",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=400, detail="User does not exist")
 
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is inactive",
-        )
+        raise HTTPException(status_code=403, detail="User is inactive")
 
     if not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token_obj: Token = create_database_token(user_id=user.id, db=db)
-
-    return TokenOut(
-        access_token=token_obj.token,
-        token_type="bearer",
-    )
+    return TokenOut(access_token=token_obj.token, token_type="bearer")
 
 
-# -------------------------
-# CURRENT USER
-# -------------------------
 @router.get("/me")
 def me(current_user: User = Depends(get_current_user)):
     return {
@@ -108,14 +78,11 @@ def me(current_user: User = Depends(get_current_user)):
     }
 
 
-# -------------------------
-# LOGOUT (DELETE ACCESS TOKEN)
-# -------------------------
-@router.delete("/logout")
+@router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(
     current_token: Token = Depends(get_current_token),
     db: Session = Depends(get_db),
 ):
     db.delete(current_token)
     db.commit()
-    return {"message": "Logged out"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
