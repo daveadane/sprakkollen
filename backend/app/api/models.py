@@ -183,19 +183,7 @@ class SearchHistory(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="search_history")
 
-class RefreshToken(Base):
-    __tablename__ = "refresh_tokens"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-
-    token_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-
-    user = relationship("User")
 
 
 
