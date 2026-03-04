@@ -1,147 +1,130 @@
 import { useEffect, useState } from "react";
-import { loadProgress, resetProgress } from "../../utils/progressStorage";
+import { apiFetch } from "../../utils/api";
+import { getAccessToken, clearAccessToken } from "../../state/auth_store";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
-  const [p, setP] = useState(() => loadProgress());
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const sync = () => setP(loadProgress());
+  const [me, setMe] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-    window.addEventListener("sprakkollen:progress-updated", sync);
-    window.addEventListener("storage", sync);
+  async function loadMe() {
+    const token = getAccessToken();
+    if (!token) {
+      // Not logged in -> go to login (or show message)
+      navigate("/login");
+      return;
+    }
 
-    return () => {
-      window.removeEventListener("sprakkollen:progress-updated", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+    try {
+      setErr("");
+      setLoading(true);
 
-  function onReset() {
-    const ok = confirm("Reset all progress? This cannot be undone.");
-    if (!ok) return;
-    resetProgress();
-    setP(loadProgress()); // immediate UI refresh
+      const data = await apiFetch("/auth/me", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMe(data);
+    } catch (e) {
+      // If token is invalid/expired, logout locally
+      clearAccessToken();
+      setMe(null);
+      navigate("/login");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // schema-safe reads
-  const xp = p?.xp ?? 0;
-  const streakDays = p?.streakDays ?? 0;
-  const lastStreakDay = p?.lastStreakDay ?? null;
+  useEffect(() => {
+    loadMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const weakWords = p?.weakWords ?? [];
+  async function onLogout() {
+    const token = getAccessToken();
+    try {
+      if (token) {
+        await apiFetch("/auth/logout", {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch (_) {
+      // ignore
+    } finally {
+      clearAccessToken();
+      navigate("/login");
+    }
+  }
 
-  const practice = p?.practice ?? {};
-  const grammar = p?.grammar ?? {};
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-4">
+        <h1 className="text-4xl font-black tracking-tight">Profile</h1>
+        <p className="text-slate-600">Loading profile…</p>
+      </div>
+    );
+  }
 
-  const lp = practice?.lastPractice ?? { score: 0, total: 0 };
-  const lq = grammar?.lastQuiz ?? { score: 0, total: 0 };
+  if (!me) {
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-4">
+        <h1 className="text-4xl font-black tracking-tight">Profile</h1>
+        <p className="text-red-600">{err || "Not logged in."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <header>
         <h1 className="text-4xl font-black tracking-tight">Profile</h1>
         <p className="mt-2 text-slate-600">
-          Local profile (saved in this browser). Backend sync comes later.
+          Backend profile (from database via <code>/auth/me</code>)
         </p>
       </header>
 
-      {/* Top stats */}
-      <section className="grid gap-4 md:grid-cols-4">
-        <Stat label="XP" value={xp} />
-        <Stat label="Streak" value={`${streakDays} days`} />
-        <Stat label="Practice sessions" value={practice?.sessions ?? 0} />
-        <Stat label="Grammar sessions" value={grammar?.sessions ?? 0} />
-      </section>
+      {/* User card */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="text-lg font-bold">Account</h2>
 
-      {/* Practice + Grammar summary */}
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-bold">Practice summary</h2>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Info
-              label="Last practice"
-              value={lp.total ? `${lp.score} / ${lp.total}` : "—"}
-            />
-            <Info label="Accuracy" value={`${practice?.accuracy ?? 0}%`} />
-            <Info label="Correct" value={practice?.correct ?? 0} />
-            <Info label="Total attempts" value={practice?.total ?? 0} />
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-bold">Grammar summary</h2>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Info
-              label="Last quiz"
-              value={lq.total ? `${lq.score} / ${lq.total}` : "—"}
-            />
-            <Info label="Accuracy" value={`${grammar?.accuracy ?? 0}%`} />
-            <Info label="Correct" value={grammar?.correct ?? 0} />
-            <Info label="Total attempts" value={grammar?.total ?? 0} />
-          </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Info label="Email" value={me.email} />
+          <Info label="User ID" value={me.id} />
+          <Info label="First name" value={me.first_name || "—"} />
+          <Info label="Last name" value={me.last_name || "—"} />
+          <Info label="Admin" value={me.is_admin ? "Yes" : "No"} />
+          <Info label="Active" value={me.is_active ? "Yes" : "No"} />
+          <Info
+            label="Created at"
+            value={me.created_at ? new Date(me.created_at).toLocaleDateString("sv-SE") : "—"}
+          />
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 className="text-lg font-bold">Streak</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Last streak update: {lastStreakDay ?? "—"}
-        </p>
-      </section>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 className="text-lg font-bold">Weak words</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Words you frequently miss during practice.
-        </p>
-
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {weakWords.length === 0 ? (
-            <li className="text-sm text-slate-500">No weak words yet 🎉</li>
-          ) : (
-            weakWords.map((w) => (
-              <li
-                key={w}
-                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700"
-              >
-                {w}
-              </li>
-            ))
-          )}
-        </ul>
-      </section>
-
+      {/* Actions */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 className="text-lg font-bold">Actions</h2>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <button
-            onClick={onReset}
-            className="rounded-2xl border border-red-200 bg-white px-5 py-3 font-bold text-red-700 hover:bg-red-50"
+            onClick={onLogout}
+            className="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-800 hover:bg-slate-50"
           >
-            Reset progress
+            Logout
           </button>
 
           <button
-            disabled
-            className="rounded-2xl border border-slate-200 bg-slate-100 px-5 py-3 font-bold text-slate-400"
-            title="Enable when backend login is connected"
+            onClick={loadMe}
+            className="rounded-2xl border border-slate-200 bg-slate-100 px-5 py-3 font-bold text-slate-700 hover:bg-slate-200"
           >
-            Logout (coming soon)
+            Refresh
           </button>
         </div>
       </section>
-    </div>
-  );
-}
-
-function Stat({ label, value }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-black">{value}</p>
     </div>
   );
 }
@@ -150,7 +133,7 @@ function Info({ label, value }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-xs font-semibold text-slate-500">{label}</p>
-      <p className="mt-1 font-bold text-slate-900">{value}</p>
+      <p className="mt-1 font-bold text-slate-900 break-words">{value}</p>
     </div>
   );
 }

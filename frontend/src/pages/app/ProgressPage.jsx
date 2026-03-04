@@ -1,59 +1,60 @@
+// src/pages/app/ProgressPage.jsx
 import { useEffect, useState } from "react";
-import { loadProgress } from "../../utils/progressStorage";
+import { getProgress, normalizeProgress } from "../../utils/progressApi";
 
 export default function ProgressPage() {
-  const [p, setP] = useState(() => loadProgress());
+  const [p, setP] = useState(() => normalizeProgress(null));
+  const [err, setErr] = useState("");
 
   useEffect(() => {
-    const refresh = () => setP(loadProgress());
-    window.addEventListener("sprakkollen:progress-updated", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("sprakkollen:progress-updated", refresh);
-      window.removeEventListener("storage", refresh);
-    };
+    let alive = true;
+    (async () => {
+      setErr("");
+      try {
+        const data = await getProgress();
+        if (alive) setP(normalizeProgress(data));
+      } catch (e) {
+        if (alive) setErr(e?.message || "Failed to load progress");
+      }
+    })();
+    return () => { alive = false; };
   }, []);
 
-  const streakDays = p.streakDays ?? 0;
-  const xp = p.xp ?? 0;
-
-  const practice = p.practice ?? { sessions: 0, correct: 0, total: 0, accuracy: 0, lastPractice: { score: 0, total: 0 } };
-  const grammar = p.grammar ?? { sessions: 0, correct: 0, total: 0, accuracy: 0, lastQuiz: { score: 0, total: 0 } };
-
-  const weakWords = p.weakWords ?? [];
+  const streakDays = p.streakDays;
+  const xp = p.xp;
+  const practice = p.practice;
+  const grammar = p.grammar;
+  const weakWords = p.weakWords;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-black tracking-tight">Progress</h1>
         <p className="mt-2 text-slate-600">Track your learning over time.</p>
+        {err ? <p className="mt-2 text-sm font-semibold text-red-600">{err}</p> : null}
       </div>
 
-      {/* Overall */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <StatCard label="Streak" value={`${streakDays} days`} />
         <StatCard label="XP" value={xp} />
       </section>
 
-      {/* Practice + Grammar */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-xl font-black">Practice</h2>
           <p className="mt-1 text-sm text-slate-600">EN/ETT sessions and accuracy.</p>
 
           <div className="mt-4 grid grid-cols-2 gap-4">
-            <MiniStat label="Sessions" value={practice.sessions ?? 0} />
-            <MiniStat label="Accuracy" value={`${practice.accuracy ?? 0}%`} />
-            <MiniStat label="Correct" value={practice.correct ?? 0} />
-            <MiniStat label="Total" value={practice.total ?? 0} />
+            <MiniStat label="Sessions" value={practice.sessions} />
+            <MiniStat label="Accuracy" value={`${practice.accuracy}%`} />
+            <MiniStat label="Correct" value={practice.correct} />
+            <MiniStat label="Total" value={practice.total} />
           </div>
 
           <p className="mt-4 text-sm text-slate-500">
             Last practice:{" "}
             <span className="font-semibold text-slate-700">
-              {practice.lastPractice?.total > 0
-                ? `${practice.lastPractice.score} / ${practice.lastPractice.total}`
-                : "—"}
+              {practice.lastPractice?.total > 0 ? `${practice.lastPractice.score} / ${practice.lastPractice.total}` : "—"}
             </span>
           </p>
         </div>
@@ -63,27 +64,24 @@ export default function ProgressPage() {
           <p className="mt-1 text-sm text-slate-600">Quiz sessions and accuracy.</p>
 
           <div className="mt-4 grid grid-cols-2 gap-4">
-            <MiniStat label="Sessions" value={grammar.sessions ?? 0} />
-            <MiniStat label="Accuracy" value={`${grammar.accuracy ?? 0}%`} />
-            <MiniStat label="Correct" value={grammar.correct ?? 0} />
-            <MiniStat label="Total" value={grammar.total ?? 0} />
+            <MiniStat label="Sessions" value={grammar.sessions} />
+            <MiniStat label="Accuracy" value={`${grammar.accuracy}%`} />
+            <MiniStat label="Correct" value={grammar.correct} />
+            <MiniStat label="Total" value={grammar.total} />
           </div>
 
           <p className="mt-4 text-sm text-slate-500">
             Last quiz:{" "}
             <span className="font-semibold text-slate-700">
-              {grammar.lastQuiz?.total > 0
-                ? `${grammar.lastQuiz.score} / ${grammar.lastQuiz.total}`
-                : "—"}
+              {grammar.lastQuiz?.total > 0 ? `${grammar.lastQuiz.score} / ${grammar.lastQuiz.total}` : "—"}
             </span>
           </p>
         </div>
       </section>
 
-      {/* Weak words */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 className="text-xl font-black">Weak words</h2>
-        <p className="mt-1 text-sm text-slate-600">Words you often miss (mock for now).</p>
+        <p className="mt-1 text-sm text-slate-600">Words you often miss.</p>
 
         {weakWords.length === 0 ? (
           <p className="mt-4 text-slate-500">No weak words yet.</p>

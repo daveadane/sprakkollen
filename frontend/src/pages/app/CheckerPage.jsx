@@ -1,7 +1,7 @@
 import { useState } from "react";
 import WordSearchInput from "../../components/checker/WordSearchInput";
 import ResultCard from "../../components/checker/ResultCard";
-import { lookupWord } from "../../api/lookup.api";
+import { apiFetch } from "../../utils/api";
 
 export default function CheckerPage() {
   const [word, setWord] = useState("");
@@ -18,12 +18,31 @@ export default function CheckerPage() {
     setResult(null);
 
     try {
-      const data = await lookupWord(w);
+      const data = await apiFetch(
+        `/lookup?word=${encodeURIComponent(w)}`,
+        { method: "GET" }
+      );
+
       setResult(data);
-    } catch (err) {
-      console.error(err);
-      setErrorMsg("Could not reach the API. Is FastAPI running on port 8000?");
-      setResult({ word: w, article: "error", confidence: "error", source: null });
+    } catch (e) {
+      console.error(e);
+
+      // nicer messages for your API behavior
+      if (e.status === 404) {
+        setErrorMsg("Word not found in dataset.");
+      } else if (e.status === 401) {
+        setErrorMsg("Please login again (session expired).");
+      } else {
+        setErrorMsg(e?.message || "Could not reach API. Is FastAPI running?");
+      }
+
+      setResult({
+        word: w,
+        article: "error",
+        confidence: null,
+        source: null,
+        examples: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -45,15 +64,11 @@ export default function CheckerPage() {
         disabled={loading}
       />
 
-      {loading && (
-        <p className="text-sm text-slate-500">Checking...</p>
-      )}
-
-      {errorMsg && (
-        <p className="text-sm text-red-600">{errorMsg}</p>
-      )}
+      {loading && <p className="text-sm text-slate-500">Checking...</p>}
+      {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
       <ResultCard result={result} />
     </div>
   );
 }
+

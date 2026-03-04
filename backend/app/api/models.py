@@ -1,29 +1,22 @@
 from __future__ import annotations
-from datetime import datetime
-from typing import Optional, List
-
-from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, UniqueConstraint, Index, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.api.db_setup import Base
-
 
 from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import (
-    String,
-    Integer,
-    DateTime,
     Boolean,
+    DateTime,
     ForeignKey,
-    UniqueConstraint,
     Index,
+    Integer,
+    String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.api.db_setup import Base
+
 
 
 class User(Base):

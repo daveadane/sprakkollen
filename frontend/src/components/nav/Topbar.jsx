@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { loadProgress } from "../../utils/progressStorage";
+import { getProgress, normalizeProgress } from "../../utils/progressApi";
+
 import useAuth from "../../state/useAuth";
 
 function getTitle(pathname) {
@@ -20,17 +21,21 @@ export default function Topbar() {
   const nav = useNavigate();
   const { user, ready, logout } = useAuth();
 
-  const [p, setP] = useState(() => loadProgress());
+const [getProgress, setProgress] = useState(() => normalizeProgress(null));
 
-  useEffect(() => {
-    const refresh = () => setP(loadProgress());
-    window.addEventListener("sprakkollen:progress-updated", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("sprakkollen:progress-updated", refresh);
-      window.removeEventListener("storage", refresh);
-    };
-  }, []);
+useEffect(() => {
+  let alive = true;
+  (async () => {
+    try {
+      const p = await getProgress();
+      if (alive) setProgress(normalizeProgress(p));
+    } catch {
+      // not logged in or backend down -> keep defaults
+    }
+  })();
+  return () => { alive = false; };
+}, []);
+
 
   const title = useMemo(() => getTitle(location.pathname), [location.pathname]);
   const xp = p?.xp ?? 0;
