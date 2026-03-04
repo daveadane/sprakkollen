@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../../utils/api";
 import { getAccessToken, clearAccessToken } from "../../state/auth_store";
 import { useNavigate } from "react-router-dom";
@@ -8,18 +8,15 @@ export default function ProfilePage() {
 
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
 
-  async function loadMe() {
+  const loadMe = useCallback(async () => {
     const token = getAccessToken();
     if (!token) {
-      // Not logged in -> go to login (or show message)
       navigate("/login");
       return;
     }
 
     try {
-      setErr("");
       setLoading(true);
 
       const data = await apiFetch("/auth/me", {
@@ -28,20 +25,18 @@ export default function ProfilePage() {
       });
 
       setMe(data);
-    } catch (e) {
-      // If token is invalid/expired, logout locally
+    } catch {
       clearAccessToken();
       setMe(null);
       navigate("/login");
     } finally {
       setLoading(false);
     }
-  }
+  }, [navigate]);
 
   useEffect(() => {
     loadMe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadMe]);
 
   async function onLogout() {
     const token = getAccessToken();
@@ -52,7 +47,7 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-    } catch (_) {
+    } catch {
       // ignore
     } finally {
       clearAccessToken();
@@ -73,7 +68,7 @@ export default function ProfilePage() {
     return (
       <div className="mx-auto w-full max-w-5xl space-y-4">
         <h1 className="text-4xl font-black tracking-tight">Profile</h1>
-        <p className="text-red-600">{err || "Not logged in."}</p>
+        <p className="text-red-600">Not logged in.</p>
       </div>
     );
   }

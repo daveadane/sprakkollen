@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -184,6 +185,17 @@ class SearchHistory(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="search_history")
+
+
+class GrammarQuestion(Base):
+    __tablename__ = "grammar_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    correct_answer: Mapped[str] = mapped_column(String(120), nullable=False)
+    choices: Mapped[list] = mapped_column(JSON, nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 

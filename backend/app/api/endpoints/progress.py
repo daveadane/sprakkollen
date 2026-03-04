@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc
@@ -82,9 +84,30 @@ def get_progress(
 
     xp = (practice_correct + grammar_correct) * 10
 
+    # --- Streak ---
+    practice_dates = set(db.execute(
+        select(func.date(PracticeSession.created_at))
+        .where(PracticeSession.user_id == user.id)
+        .distinct()
+    ).scalars().all())
+
+    grammar_dates = set(db.execute(
+        select(func.date(GrammarSession.created_at))
+        .where(GrammarSession.user_id == user.id)
+        .distinct()
+    ).scalars().all())
+
+    active_dates = practice_dates | grammar_dates
+
+    streak = 0
+    current = date.today()
+    while current in active_dates:
+        streak += 1
+        current -= timedelta(days=1)
+
     return {
         "xp": xp,
-        "streakDays": 0,
+        "streakDays": streak,
         "practice": {
             "sessions": practice_sessions,
             "correct": practice_correct,

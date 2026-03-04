@@ -1,45 +1,17 @@
 from __future__ import annotations
 
+import random
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from app.api.db_setup import get_db
-from app.api.models import GrammarSession, GrammarAnswer, User
+from app.api.models import GrammarSession, GrammarAnswer, GrammarQuestion, User
 from app.api.security import get_current_user
-from app.api.schemas import GrammarResultOut, GrammarSubmitIn, GrammarSessionOut # make sure these exist
+from app.api.schemas import GrammarResultOut, GrammarSubmitIn, GrammarSessionOut
 
 router = APIRouter(prefix="/grammar", tags=["grammar"])
-
-
-# Minimal static grammar questions (you can improve later)
-GRAMMAR_QUESTIONS = [
-    {
-        "question": "Choose correct word: Jag ___ i Sverige.",
-        "correct": "bor",
-        "choices": ["bor", "bott", "bo"],
-    },
-    {
-        "question": "Choose correct: Hon ___ en bok igår.",
-        "correct": "läste",
-        "choices": ["läser", "läste", "läs"],
-    },
-    {
-        "question": "Choose correct: Vi ___ till skolan varje dag.",
-        "correct": "går",
-        "choices": ["går", "gick", "gå"],
-    },
-    {
-        "question": "Choose correct: De ___ hemma nu.",
-        "correct": "är",
-        "choices": ["är", "var", "vara"],
-    },
-    {
-        "question": "Choose correct: Jag ___ kaffe just nu.",
-        "correct": "dricker",
-        "choices": ["dricker", "drack", "dricka"],
-    },
-]
 
 
 @router.post("/sessions")
@@ -47,73 +19,28 @@ def create_grammar_session(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    s = GrammarSession(user_id=user.id, total_questions=0, score=0)
+    all_questions = db.execute(select(GrammarQuestion)).scalars().all()
+    if not all_questions:
+        raise HTTPException(status_code=500, detail="No grammar questions in database")
+
+    selected = random.sample(all_questions, min(5, len(all_questions)))
+
+    s = GrammarSession(user_id=user.id, total_questions=len(selected), score=0)
     db.add(s)
     db.commit()
     db.refresh(s)
 
-    # Insert questions into grammar_answers (as "pending" answers)
-    items = GRAMMAR_QUESTIONS[:5]
-    for q in items:
-        db.add(
-            GrammarAnswer(
-                session_id=s.id,
-                question=q["question"],
-                correct_answer=q["correct"],
-                user_answer="",          # empty until submit
-                is_correct=False,
-            )
-        )
+    for q in selected:
+        db.add(GrammarAnswer(
+            session_id=s.id,
+            question=q.question,
+            correct_answer=q.correct_answer,
+            user_answer="",
+            is_correct=False,
+        ))
 
-    s.total_questions = len(items)
     db.commit()
-
     return {"id": s.id}
-
-
-@router.post("/sessions/{session_id}/submit", response_model=GrammarResultOut)
-def submit_grammar_session(
-    session_id: int,
-    payload: GrammarSubmitIn,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    s = db.get(GrammarSession, session_id)
-    if not s or s.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    # Load stored questions for this session
-    rows = db.execute(
-        select(GrammarAnswer).where(GrammarAnswer.session_id == s.id)
-    ).scalars().all()
-
-    if not rows:
-        raise HTTPException(status_code=400, detail="No questions in this session")
-
-    # Map by question text (minimal & reliable for now)
-    answer_map = {a.question: a for a in rows}
-
-    score = 0
-    total = len(rows)
-
-    for item in payload.answers:
-        # Expecting payload: {"answers":[{"question":"...", "chosen":"..."}]}
-        stored = answer_map.get(item.question)
-        if not stored:
-            continue
-
-        stored.user_answer = item.chosen
-        stored.is_correct = (item.chosen.strip().lower() == stored.correct_answer.strip().lower())
-        if stored.is_correct:
-            score += 1
-
-    s.score = score
-    s.total_questions = total
-    db.commit()
-
-    accuracy = int((score / total) * 100) if total else 0
-    return {"score": score, "total": total, "accuracy": accuracy}
-
 
 
 @router.get("/sessions/{session_id}", response_model=GrammarSessionOut)
@@ -132,12 +59,64 @@ def get_grammar_session(
         .order_by(GrammarAnswer.id)
     ).scalars().all()
 
-    # attach choices (same order as GRAMMAR_QUESTIONS)
-    questions_out = []
-    for idx, r in enumerate(rows):
-        choices = GRAMMAR_QUESTIONS[idx]["choices"] if idx < len(GRAMMAR_QUESTIONS) else []
-        questions_out.append(
-            {"question_id": r.id, "question": r.question, "choices": choices}
-        )
+    # Look up choices from grammar_questions by question text
+    question_texts = [r.question for r in rows]
+    gq_map = {}
+    if question_texts:
+        gq_list = db.execute(
+            select(GrammarQuestion).where(GrammarQuestion.question.in_(question_texts))
+        ).scalars().all()
+        gq_map = {gq.question: gq for gq in gq_list}
 
-    return {"id": s.id, "questions": questions_out}  
+    questions_out = []
+    for r in rows:
+        gq = gq_map.get(r.question)
+        questions_out.append({
+            "question_id": r.id,
+            "question": r.question,
+            "choices": gq.choices if gq else [],
+            "correct_answer": r.correct_answer,
+        })
+
+    return {"id": s.id, "questions": questions_out}
+
+
+@router.post("/sessions/{session_id}/submit", response_model=GrammarResultOut)
+def submit_grammar_session(
+    session_id: int,
+    payload: GrammarSubmitIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    s = db.get(GrammarSession, session_id)
+    if not s or s.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    rows = db.execute(
+        select(GrammarAnswer).where(GrammarAnswer.session_id == s.id)
+    ).scalars().all()
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="No questions in this session")
+
+    # Key by GrammarAnswer.id (which the frontend sends as question_id)
+    answer_map = {a.id: a for a in rows}
+
+    score = 0
+    total = len(rows)
+
+    for item in payload.answers:
+        stored = answer_map.get(item.question_id)
+        if not stored:
+            continue
+        stored.user_answer = item.chosen
+        stored.is_correct = (item.chosen.strip().lower() == stored.correct_answer.strip().lower())
+        if stored.is_correct:
+            score += 1
+
+    s.score = score
+    s.total_questions = total
+    db.commit()
+
+    accuracy = int((score / total) * 100) if total else 0
+    return {"score": score, "total": total, "accuracy": accuracy}

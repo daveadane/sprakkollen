@@ -118,6 +118,7 @@ class GrammarQuestionOut(BaseModel):
     question_id: int
     question: str
     choices: List[str]
+    correct_answer: str
 
 class GrammarSessionOut(BaseModel):
     id: int

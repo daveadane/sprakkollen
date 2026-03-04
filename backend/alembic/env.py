@@ -10,11 +10,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.api.db_setup import Base
 from app.api import models  # IMPORTANT: registers models so metadata has tables
+from app.api.settings import settings
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Inject DB URL from .env so alembic.ini never needs credentials
+config.set_main_option("sqlalchemy.url", settings.DB_URL)
 
 # ✅ Alembic needs this for autogenerate
 target_metadata = Base.metadata

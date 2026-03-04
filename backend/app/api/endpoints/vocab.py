@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,8 @@ router = APIRouter(prefix="/vocab", tags=["vocab"])
 
 @router.get("", response_model=list[VocabOut])
 def list_vocab(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -18,6 +20,8 @@ def list_vocab(
         db.query(VocabularyWord)
         .filter(VocabularyWord.user_id == user.id)
         .order_by(VocabularyWord.created_at.desc(), VocabularyWord.id.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
 
