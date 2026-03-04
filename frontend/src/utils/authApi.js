@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import { setAccessToken, getAccessToken, clearAccessToken } from "../state/auth_store";
+import { setAccessToken, clearAccessToken } from "../state/auth_store";
 
 export async function login(email, password) {
   const body = new URLSearchParams();
@@ -12,47 +12,27 @@ export async function login(email, password) {
     body,
   });
 
-  // backend returns { access_token, token_type }
   setAccessToken(data.access_token);
   return data;
 }
 
-export async function refresh() {
-  try {
-    const data = await apiFetch("/auth/refresh", { method: "POST" });
-    setAccessToken(data.access_token);
-    return data;
-  } catch (e) {
-    if (e.status === 401) return null; // silently ignore
-    throw e;
-  }
-}
+// ✅ NO refresh() (teacher wants it removed)
 
 export async function me() {
-  const token = getAccessToken();
-  if (!token) throw new Error("No access token");
-
-  return apiFetch("/auth/me", {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  // api.js already injects Authorization if token exists
+  return apiFetch("/auth/me", { method: "GET" });
 }
 
 export async function logout() {
-  const token = getAccessToken();
-  if (token) {
-    await apiFetch("/auth/logout", {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => {});
-  }
+  // api.js already injects Authorization if token exists
+  await apiFetch("/auth/logout", { method: "DELETE" }).catch(() => {});
   clearAccessToken();
 }
 
 export async function register({ email, password, first_name, last_name }) {
+  // apiFetch will JSON stringify objects automatically (your api.js does that)
   return apiFetch("/auth/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, first_name, last_name }),
+    body: { email, password, first_name, last_name },
   });
 }

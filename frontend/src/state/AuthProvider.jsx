@@ -1,23 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
-import {login as apiLogin,logout as apiLogout, me,refresh,} from "../utils/authApi";
-import { clearAccessToken } from "./auth_store";
+import { login as apiLogin, logout as apiLogout, me } from "../utils/authApi";
+import { getAccessToken, clearAccessToken } from "./auth_store";
 import { AuthContext } from "./authContext";
-
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
 
-  // Run once on app start:
-  // 1) try refresh (cookie -> new access token)
-  // 2) if success, fetch /me and set user
+  // ✅ Run once on app start:
+  // If access token exists -> call /me
+  // Otherwise user stays logged out
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        await refresh();        // expects cookie, sets access token in memory
-        const u = await me();   // uses access token
+        const token = getAccessToken();
+        if (!token) {
+          if (alive) setUser(null);
+          return;
+        }
+
+        const u = await me();
         if (alive) setUser(u);
       } catch {
         clearAccessToken();
@@ -33,14 +37,13 @@ export default function AuthProvider({ children }) {
   }, []);
 
   async function login(email, password) {
-    await apiLogin(email, password); // sets access token
+    await apiLogin(email, password);
     const u = await me();
     setUser(u);
     return u;
   }
 
   async function logout() {
-    // best effort: logout access token on backend
     await apiLogout().catch(() => {});
     clearAccessToken();
     setUser(null);

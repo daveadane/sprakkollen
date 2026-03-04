@@ -120,9 +120,9 @@ def get_current_admin(user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     return user
 
-def hash_refresh_token(token: str) -> str:
-    # Use a strong hash function to hash the refresh token before storing
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+#def hash_refresh_token(token: str) -> str:
+# Use a strong hash function to hash the refresh token before storing
+#return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
-def new_refresh_token() -> str:
-    return secrets.token_urlsafe(48)  # 48 bytes -> 64 chars URL-safe string
+#def new_refresh_token() -> str:
+# return secrets.token_urlsafe(48)  # 48 bytes -> 64 chars URL-safe string

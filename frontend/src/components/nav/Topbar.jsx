@@ -1,7 +1,6 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { getProgress, normalizeProgress } from "../../utils/progressApi";
-
+import { getProgress as fetchProgress, normalizeProgress } from "../../utils/progressApi";
 import useAuth from "../../state/useAuth";
 
 function getTitle(pathname) {
@@ -21,25 +20,30 @@ export default function Topbar() {
   const nav = useNavigate();
   const { user, ready, logout } = useAuth();
 
-const [getProgress, setProgress] = useState(() => normalizeProgress(null));
+  // ✅ correct state name
+  const [p, setP] = useState(() => normalizeProgress(null));
 
-useEffect(() => {
-  let alive = true;
-  (async () => {
-    try {
-      const p = await getProgress();
-      if (alive) setProgress(normalizeProgress(p));
-    } catch {
-      // not logged in or backend down -> keep defaults
-    }
-  })();
-  return () => { alive = false; };
-}, []);
+  // ✅ only try progress when logged in
+  useEffect(() => {
+    let alive = true;
 
+    (async () => {
+      if (!user) return;
+      try {
+        const data = await fetchProgress();
+        if (alive) setP(normalizeProgress(data));
+      } catch {
+        // backend down or unauthorized -> keep defaults
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   const title = useMemo(() => getTitle(location.pathname), [location.pathname]);
   const xp = p?.xp ?? 0;
-
   const initial = (user?.first_name?.[0] || user?.email?.[0] || "U").toUpperCase();
 
   async function onLogout() {
@@ -53,9 +57,7 @@ useEffect(() => {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-black tracking-tight">{title}</h1>
-        </div>
+        <h1 className="text-lg font-black tracking-tight">{title}</h1>
 
         <div className="flex items-center gap-4">
           <span className="rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">
@@ -64,9 +66,7 @@ useEffect(() => {
 
           {!ready ? null : user ? (
             <>
-              <span className="hidden text-sm text-slate-600 sm:inline">
-                {user.email}
-              </span>
+              <span className="hidden text-sm text-slate-600 sm:inline">{user.email}</span>
 
               <button
                 onClick={onLogout}
