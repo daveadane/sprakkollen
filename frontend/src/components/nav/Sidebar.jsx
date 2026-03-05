@@ -57,6 +57,27 @@ export default function Sidebar() {
         </NavLink>
 
         <NavLink
+          to="/books"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Reading
+        </NavLink>
+
+        <NavLink
+          to="/audio"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Audio
+        </NavLink>
+
+        <NavLink
+          to="/speech"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Speech
+        </NavLink>
+
+        <NavLink
           to="/profile"
           className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
         >

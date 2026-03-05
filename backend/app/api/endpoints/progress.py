@@ -8,7 +8,8 @@ from app.api.db_setup import get_db
 from app.api.models import (
     User,
     PracticeSession, PracticeAnswer,
-    GrammarSession, GrammarAnswer
+    GrammarSession, GrammarAnswer,
+    ReadingSession,
 )
 from app.api.security import get_current_user
 
@@ -97,7 +98,13 @@ def get_progress(
         .distinct()
     ).scalars().all())
 
-    active_dates = practice_dates | grammar_dates
+    reading_dates = set(db.execute(
+        select(func.date(ReadingSession.created_at))
+        .where(ReadingSession.user_id == user.id)
+        .distinct()
+    ).scalars().all())
+
+    active_dates = practice_dates | grammar_dates | reading_dates
 
     streak = 0
     current = date.today()

@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from app.api.db_setup import get_db
 from app.api.models import User
@@ -9,7 +9,8 @@ from app.api.security import require_admin
 from datetime import datetime, timedelta
 from sqlalchemy import func
 
-from app.api.models import LookupCache
+from app.api.models import LookupCache, SwedishWord
+from app.api.schemas import SwedishWordCreate, SwedishWordUpdate, SwedishWordOut
 from app.api.settings import settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -95,3 +96,75 @@ def cache_stats(
         "newest_entry": newest,
         "ttl_minutes": settings.LOOKUP_CACHE_TTL_MINUTES,
     }
+
+
+# ---------- Swedish Word DB management (admin only) ----------
+
+@router.get("/words", response_model=list[SwedishWordOut])
+def list_words(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    search: str = Query("", alias="search"),
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    q = db.query(SwedishWord)
+    if search:
+        q = q.filter(SwedishWord.word.ilike(f"%{search}%"))
+    return q.order_by(SwedishWord.word.asc()).offset(skip).limit(limit).all()
+
+
+@router.post("/words", response_model=SwedishWordOut, status_code=status.HTTP_201_CREATED)
+def create_word(
+    payload: SwedishWordCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    word = payload.word.strip().lower()
+    existing = db.query(SwedishWord).filter(SwedishWord.word == word).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Word already exists in database")
+
+    row = SwedishWord(word=word, article=payload.article, confidence=payload.confidence or 0.99)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.put("/words/{word_id}", response_model=SwedishWordOut)
+def update_word(
+    word_id: int,
+    payload: SwedishWordUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    row = db.query(SwedishWord).filter(SwedishWord.id == word_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Word not found")
+
+    if payload.word is not None:
+        row.word = payload.word.strip().lower()
+    if payload.article is not None:
+        row.article = payload.article
+    if payload.confidence is not None:
+        row.confidence = payload.confidence
+
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.delete("/words/{word_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_word(
+    word_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    row = db.query(SwedishWord).filter(SwedishWord.id == word_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Word not found")
+
+    db.delete(row)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

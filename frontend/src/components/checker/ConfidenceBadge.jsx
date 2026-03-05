@@ -7,11 +7,17 @@ const stylesByConfidence = {
 };
 
 export default function ConfidenceBadge({ confidence = "unknown", source }) {
-  const cls = stylesByConfidence[confidence] ?? stylesByConfidence.unknown;
+  const isNumeric = typeof confidence === "number";
+  const label = isNumeric
+    ? `${Math.round(confidence * 100)}%`
+    : String(confidence).toUpperCase();
+  const cls = isNumeric
+    ? confidence >= 0.85 ? stylesByConfidence.verified : stylesByConfidence.predicted
+    : (stylesByConfidence[confidence] ?? stylesByConfidence.unknown);
 
   return (
     <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${cls}`}>
-      {confidence.toUpperCase()}
+      {label}
       {source ? <span className="opacity-70">• {source}</span> : null}
     </span>
   );

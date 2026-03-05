@@ -155,3 +155,95 @@ class ProgressOut(BaseModel):
     practice: ProgressBlock
     grammar: ProgressBlock
     weakWords: List[str] = []
+
+
+# ---------- Reading ----------
+class ReadingTextOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    level: str
+    topic: Optional[str] = None
+
+
+class ReadingQuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    question: str
+    choices: List[str]
+
+
+class ReadingTextDetailOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    content: str
+    level: str
+    topic: Optional[str] = None
+    questions: List[ReadingQuestionOut]
+
+
+class ReadingAnswerIn(BaseModel):
+    question_id: int
+    chosen: str
+
+
+class ReadingSubmitIn(BaseModel):
+    answers: List[ReadingAnswerIn]
+
+
+class ReadingResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+    feedback: List[dict]
+
+
+# ---------- Word Suggestions ----------
+class SuggestionCreate(BaseModel):
+    word: str = Field(..., min_length=1, max_length=120)
+    article: Article
+    suggestion_type: Literal["add", "flag"]
+    note: Optional[str] = None
+
+
+class SuggestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    word: str
+    article: str
+    suggestion_type: str
+    note: Optional[str] = None
+    status: str
+    admin_note: Optional[str] = None
+    created_at: datetime
+
+
+class SuggestionReview(BaseModel):
+    admin_note: Optional[str] = None
+
+
+# ---------- Swedish Words (admin word DB management) ----------
+class SwedishWordCreate(BaseModel):
+    word: str = Field(..., min_length=1, max_length=120)
+    article: Article
+    confidence: Optional[float] = 0.99
+
+
+class SwedishWordUpdate(BaseModel):
+    word: Optional[str] = Field(None, min_length=1, max_length=120)
+    article: Optional[Article] = None
+    confidence: Optional[float] = None
+
+
+class SwedishWordOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    word: str
+    article: str
+    confidence: Optional[float] = None

@@ -22,6 +22,10 @@ import ProgressPage from "../pages/app/ProgressPage";
 import GrammarPage from "../pages/app/GrammarPage";
 import ProfilePage from "../pages/app/ProfilePage";
 import AdminPage from "../pages/app/AdminPage";
+import BooksPage from "../pages/app/BooksPage";
+import BookSessionPage from "../pages/app/BookSessionPage";
+import AudioPage from "../pages/app/AudioPage";
+import SpeechPage from "../pages/app/SpeechPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -52,6 +56,10 @@ export const router = createBrowserRouter([
           { path: "/grammar", element: <GrammarPage /> },
           { path: "/profile", element: <ProfilePage /> },
           { path: "/admin", element: <AdminPage /> },
+          { path: "/books", element: <BooksPage /> },
+          { path: "/books/:id", element: <BookSessionPage /> },
+          { path: "/audio", element: <AudioPage /> },
+          { path: "/speech", element: <SpeechPage /> },
         ],
       },
     ],

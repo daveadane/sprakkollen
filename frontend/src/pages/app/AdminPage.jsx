@@ -10,6 +10,9 @@ function fmtDate(s) {
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSugg, setLoadingSugg] = useState(true);
+  const [busySuggId, setBusySuggId] = useState(null);
 
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -50,14 +53,50 @@ export default function AdminPage() {
     }
   }
 
+  async function loadSuggestions() {
+    setLoadingSugg(true);
+    try {
+      const data = await apiFetch("/admin/suggestions");
+      setSuggestions(Array.isArray(data) ? data : []);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setLoadingSugg(false);
+    }
+  }
+
   async function refreshAll() {
-    await Promise.allSettled([loadUsers(), loadStats()]);
+    await Promise.allSettled([loadUsers(), loadStats(), loadSuggestions()]);
   }
 
   useEffect(() => {
     refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function approveSuggestion(s) {
+    setBusySuggId(s.id);
+    try {
+      await apiFetch(`/admin/suggestions/${s.id}/approve`, { method: "POST", body: {} });
+      setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+    } catch (e) {
+      alert(e?.message || "Failed to approve.");
+    } finally {
+      setBusySuggId(null);
+    }
+  }
+
+  async function rejectSuggestion(s) {
+    setBusySuggId(s.id);
+    try {
+      await apiFetch(`/admin/suggestions/${s.id}/reject`, { method: "POST", body: {} });
+      setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+    } catch (e) {
+      alert(e?.message || "Failed to reject.");
+    } finally {
+      setBusySuggId(null);
+    }
+  }
 
   const counts = useMemo(() => {
     const total = users.length;
@@ -153,6 +192,76 @@ export default function AdminPage() {
             <Mini label="Expired" value={stats?.expired_entries ?? "—"} />
             <Mini label="TTL (min)" value={stats?.ttl_minutes ?? "—"} />
             <Mini label="Newest" value={fmtDate(stats?.newest_entry)} />
+          </div>
+        )}
+      </section>
+
+      {/* Word Suggestions */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="text-xl font-black">Word Suggestions</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Pending user suggestions — approve to add/fix a word, reject to dismiss.
+        </p>
+
+        {loadingSugg ? (
+          <Muted className="mt-4">Loading…</Muted>
+        ) : suggestions.length === 0 ? (
+          <Muted className="mt-4">No pending suggestions.</Muted>
+        ) : (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50">
+                <tr>
+                  <Th>Word</Th>
+                  <Th>Article</Th>
+                  <Th>Type</Th>
+                  <Th>Note</Th>
+                  <Th>User</Th>
+                  <Th>Date</Th>
+                  <Th className="text-right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {suggestions.map((s) => (
+                  <tr key={s.id} className="border-t">
+                    <Td className="font-mono font-semibold">{s.word}</Td>
+                    <Td>{s.article}</Td>
+                    <Td>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          s.suggestion_type === "add"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-orange-100 text-orange-800"
+                        }`}
+                      >
+                        {s.suggestion_type}
+                      </span>
+                    </Td>
+                    <Td className="text-sm text-slate-500">{s.note || "—"}</Td>
+                    <Td className="font-mono text-sm">{s.user_email ?? s.user_id}</Td>
+                    <Td className="text-sm">{fmtDate(s.created_at)}</Td>
+                    <Td className="text-right">
+                      <div className="inline-flex gap-2">
+                        <button
+                          disabled={busySuggId === s.id}
+                          onClick={() => approveSuggestion(s)}
+                          className="rounded-xl border border-green-200 bg-white px-3 py-1.5 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          disabled={busySuggId === s.id}
+                          onClick={() => rejectSuggestion(s)}
+                          className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </section>

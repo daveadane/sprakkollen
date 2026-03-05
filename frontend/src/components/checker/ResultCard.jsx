@@ -5,7 +5,7 @@ export default function ResultCard({ result }) {
 
   const { word, article, confidence, source, examples = [] } = result;
 
-  const isUnknown = article === "unknown";
+  const isKnown = article === "en" || article === "ett";
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
@@ -19,10 +19,12 @@ export default function ResultCard({ result }) {
       </div>
 
       <div>
-        {isUnknown ? (
-          <p className="text-red-600 font-semibold">Unknown gender</p>
+        {isKnown ? (
+          <p className="text-4xl font-black">
+            <span className="text-blue-600">{article}</span> {word}
+          </p>
         ) : (
-          <p className="text-4xl font-black">{article.toUpperCase()}</p>
+          <p className="text-red-600 font-semibold">Gender not found in dataset</p>
         )}
       </div>
 

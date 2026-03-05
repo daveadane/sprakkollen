@@ -6,6 +6,7 @@ from typing import List, Optional
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -78,6 +79,7 @@ class LookupCache(Base):
     article: Mapped[str] = mapped_column(String(10), nullable=False)  # en/ett/unknown
     confidence: Mapped[str] = mapped_column(String(30), nullable=False, default="unknown")
     source: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    examples: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -196,6 +198,73 @@ class GrammarQuestion(Base):
     choices: Mapped[list] = mapped_column(JSON, nullable=False)
     category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ReadingText(Base):
+    __tablename__ = "reading_texts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    level: Mapped[str] = mapped_column(String(10), nullable=False)   # A1, A2, B1, B2
+    topic: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    questions: Mapped[List["ReadingQuestion"]] = relationship(back_populates="text", cascade="all, delete-orphan")
+
+
+class ReadingQuestion(Base):
+    __tablename__ = "reading_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    text_id: Mapped[int] = mapped_column(ForeignKey("reading_texts.id", ondelete="CASCADE"), nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    correct_answer: Mapped[str] = mapped_column(String(200), nullable=False)
+    choices: Mapped[list] = mapped_column(JSON, nullable=False)
+
+    text: Mapped["ReadingText"] = relationship(back_populates="questions")
+
+
+class SwedishWord(Base):
+    """All Swedish nouns imported from Wiktionary, used by the checker."""
+    __tablename__ = "swedish_words"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    word: Mapped[str] = mapped_column(String(120), nullable=False, unique=True, index=True)
+    article: Mapped[str] = mapped_column(String(10), nullable=False)   # en / ett
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.88)
+    examples: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+
+
+class ReadingSession(Base):
+    """Records when a user completes a reading exercise (for progress/streak)."""
+    __tablename__ = "reading_sessions"
+    __table_args__ = (Index("ix_reading_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    text_id: Mapped[int] = mapped_column(ForeignKey("reading_texts.id", ondelete="CASCADE"), nullable=False)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class WordSuggestion(Base):
+    """User-submitted suggestions: add a missing word or flag an incorrect one."""
+    __tablename__ = "word_suggestions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    word: Mapped[str] = mapped_column(String(120), nullable=False)
+    article: Mapped[str] = mapped_column(String(10), nullable=False)        # en / ett
+    suggestion_type: Mapped[str] = mapped_column(String(10), nullable=False)  # "add" or "flag"
+    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")  # pending/approved/rejected
+    admin_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    user: Mapped["User"] = relationship("User")
 
 
 
