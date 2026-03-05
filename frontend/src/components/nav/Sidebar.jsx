@@ -92,6 +92,13 @@ export default function Sidebar() {
         </NavLink>
 
         <NavLink
+          to="/image-quiz"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Image Quiz
+        </NavLink>
+
+        <NavLink
           to="/profile"
           className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
         >

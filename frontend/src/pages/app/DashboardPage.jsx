@@ -21,6 +21,7 @@ const FEATURES = [
   { label: "Speech", desc: "Speak Swedish words aloud and get checked.", path: "/speech", color: "bg-teal-600 hover:bg-teal-700" },
   { label: "Mixed Test", desc: "10-question test: articles + grammar combined.", path: "/test", color: "bg-rose-600 hover:bg-rose-700" },
   { label: "Dictation", desc: "Listen to Swedish words and type what you hear.", path: "/dictation", color: "bg-indigo-600 hover:bg-indigo-700" },
+  { label: "Image Quiz", desc: "See an image and type (or speak) the Swedish word.", path: "/image-quiz", color: "bg-violet-600 hover:bg-violet-700" },
 ];
 
 export default function DashboardPage() {

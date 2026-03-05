@@ -41,6 +41,7 @@ class User(Base):
     grammar_sessions: Mapped[List["GrammarSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     test_sessions: Mapped[List["TestSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     dictation_sessions: Mapped[List["DictationSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    image_quiz_sessions: Mapped[List["ImageQuizSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     search_history = relationship(
     "SearchHistory",
@@ -297,6 +298,21 @@ class DictationSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="dictation_sessions")
+
+
+class ImageQuizSession(Base):
+    """User sees an image and types/speaks the Swedish word."""
+    __tablename__ = "image_quiz_sessions"
+    __table_args__ = (Index("ix_image_quiz_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    words: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="image_quiz_sessions")
 
 
 class WordImageCache(Base):

@@ -312,3 +312,27 @@ class DictationResultOut(BaseModel):
     total: int
     accuracy: int
     feedback: List[DictationFeedbackItem]
+
+
+# ---------- Image Quiz ----------
+class ImageQuizSessionOut(BaseModel):
+    id: int
+    words: List[str]
+
+
+class ImageQuizSubmitIn(BaseModel):
+    answers: List[str]
+
+
+class ImageQuizFeedbackItem(BaseModel):
+    word: str
+    typed: str
+    correct: bool
+    image_url: Optional[str] = None
+
+
+class ImageQuizResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+    feedback: List[ImageQuizFeedbackItem]

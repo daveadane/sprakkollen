@@ -29,6 +29,7 @@ import SpeechPage from "../pages/app/SpeechPage";
 import OnboardingPage from "../pages/app/OnboardingPage";
 import TestPage from "../pages/app/TestPage";
 import DictationPage from "../pages/app/DictationPage";
+import ImageQuizPage from "../pages/app/ImageQuizPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
           { path: "/onboarding", element: <OnboardingPage /> },
           { path: "/test", element: <TestPage /> },
           { path: "/dictation", element: <DictationPage /> },
+          { path: "/image-quiz", element: <ImageQuizPage /> },
         ],
       },
     ],

@@ -1,4 +1,3 @@
-import re
 import requests as http_requests
 
 from fastapi import APIRouter, Depends, Query
@@ -11,36 +10,50 @@ from app.api.endpoints.auth import get_current_user
 
 router = APIRouter(tags=["images"])
 
+HEADERS = {"User-Agent": "SpråkKollen/1.0 (language learning app)"}
 
-def get_english_translation(swedish_word: str) -> str:
+
+def fetch_from_swedish_wikipedia(word: str) -> str | None:
     """
-    Try to get the English translation of a Swedish word via Wiktionary.
-    Falls back to the original word if anything fails.
+    Fetch a thumbnail from Swedish Wikipedia for the word.
+    sv.wikipedia.org already knows Swedish word meanings — no translation needed.
     """
     try:
-        url = f"https://en.wiktionary.org/api/rest_v1/page/definition/{swedish_word.lower()}"
-        resp = http_requests.get(url, timeout=4)
-        if resp.status_code != 200:
-            return swedish_word
-
-        data = resp.json()
-        sv_sections = data.get("sv", [])
-
-        for section in sv_sections:
-            for defn in section.get("definitions", []):
-                raw = defn.get("definition", "")
-                # Strip HTML tags
-                clean = re.sub(r"<[^>]+>", "", raw).strip()
-                if not clean:
-                    continue
-                # Take first significant word from definition
-                first = clean.split()[0].rstrip(".,;:()")
-                if len(first) > 2:
-                    return first
+        resp = http_requests.get(
+            f"https://sv.wikipedia.org/api/rest_v1/page/summary/{word}",
+            headers=HEADERS,
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            thumbnail = data.get("thumbnail") or data.get("originalimage")
+            if thumbnail:
+                return thumbnail.get("source")
     except Exception:
         pass
+    return None
 
-    return swedish_word
+
+def fetch_from_unsplash(word: str) -> str | None:
+    """Fallback: fetch from Unsplash using the Swedish word directly."""
+    if not settings.UNSPLASH_ACCESS_KEY:
+        return None
+    try:
+        resp = http_requests.get(
+            "https://api.unsplash.com/photos/random",
+            params={"query": word, "orientation": "squarish", "count": 1},
+            headers={"Authorization": f"Client-ID {settings.UNSPLASH_ACCESS_KEY}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            photos = resp.json()
+            if isinstance(photos, dict):
+                photos = [photos]
+            if photos:
+                return photos[0].get("urls", {}).get("small")
+    except Exception:
+        pass
+    return None
 
 
 @router.get("/word-image")
@@ -49,35 +62,25 @@ def get_word_image(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Return a cached Unsplash image URL for a Swedish word."""
+    """
+    Return an image URL for a Swedish word.
+    Strategy: Swedish Wikipedia first (no translation needed), then Unsplash as fallback.
+    Results are cached in the DB.
+    """
     word_lower = word.lower().strip()
 
     cached = db.query(WordImageCache).filter(WordImageCache.word == word_lower).first()
-    if cached:
+    if cached and cached.image_url:
         return {"word": word, "image_url": cached.image_url}
 
-    image_url = None
+    # 1. Try Unsplash first (clear photos, better for image quiz)
+    image_url = fetch_from_unsplash(word_lower)
 
-    if settings.UNSPLASH_ACCESS_KEY:
-        search_term = get_english_translation(word_lower)
+    # 2. Fallback to Swedish Wikipedia
+    if not image_url:
+        image_url = fetch_from_swedish_wikipedia(word_lower)
 
-        try:
-            resp = http_requests.get(
-                "https://api.unsplash.com/photos/random",
-                params={"query": search_term, "orientation": "squarish", "count": 1},
-                headers={"Authorization": f"Client-ID {settings.UNSPLASH_ACCESS_KEY}"},
-                timeout=5,
-            )
-            if resp.status_code == 200:
-                photos = resp.json()
-                if isinstance(photos, dict):
-                    photos = [photos]
-                if photos:
-                    image_url = photos[0].get("urls", {}).get("small")
-        except Exception:
-            pass
-
-    # Upsert cache
+    # Cache the result (upsert)
     if cached:
         cached.image_url = image_url
     else:
