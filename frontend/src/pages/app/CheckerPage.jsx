@@ -9,6 +9,7 @@ export default function CheckerPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [notFound, setNotFound] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   // Favorite / save to vocabulary
   const [savedStatus, setSavedStatus] = useState(""); // "" | "saving" | "saved" | "exists" | error
@@ -46,10 +47,15 @@ export default function CheckerPage() {
     setShowSuggest(false);
     setSuggestStatus("");
     setSavedStatus("");
+    setImageUrl(null);
 
     try {
       const data = await apiFetch(`/lookup?word=${encodeURIComponent(w)}`, { method: "GET" });
       setResult(data);
+      // Fetch word image in background (don't block result display)
+      apiFetch(`/word-image?word=${encodeURIComponent(w)}`)
+        .then((img) => setImageUrl(img?.image_url || null))
+        .catch(() => {});
     } catch (e) {
       if (e.status === 404) {
         setErrorMsg("Word not found in dataset.");
@@ -148,6 +154,20 @@ export default function CheckerPage() {
       )}
 
       <ResultCard result={result} />
+
+      {/* Word image from Unsplash */}
+      {imageUrl && (
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <img
+            src={imageUrl}
+            alt={result?.word}
+            className="w-full object-cover max-h-56"
+          />
+          <p className="px-3 py-1.5 text-xs text-slate-400 bg-white">
+            Photo from Unsplash
+          </p>
+        </div>
+      )}
 
       {/* Save to vocabulary + Flag row */}
       {result && !showSuggest && (

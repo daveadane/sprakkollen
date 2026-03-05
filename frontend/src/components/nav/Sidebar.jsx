@@ -78,6 +78,20 @@ export default function Sidebar() {
         </NavLink>
 
         <NavLink
+          to="/test"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Mixed Test
+        </NavLink>
+
+        <NavLink
+          to="/dictation"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          Dictation
+        </NavLink>
+
+        <NavLink
           to="/profile"
           className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
         >

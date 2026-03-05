@@ -19,6 +19,8 @@ const FEATURES = [
   { label: "Checker", desc: "Look up en/ett for any Swedish noun.", path: "/checker", color: "bg-orange-500 hover:bg-orange-600" },
   { label: "Audio", desc: "Listen and pick the right word.", path: "/audio", color: "bg-pink-600 hover:bg-pink-700" },
   { label: "Speech", desc: "Speak Swedish words aloud and get checked.", path: "/speech", color: "bg-teal-600 hover:bg-teal-700" },
+  { label: "Mixed Test", desc: "10-question test: articles + grammar combined.", path: "/test", color: "bg-rose-600 hover:bg-rose-700" },
+  { label: "Dictation", desc: "Listen to Swedish words and type what you hear.", path: "/dictation", color: "bg-indigo-600 hover:bg-indigo-700" },
 ];
 
 export default function DashboardPage() {

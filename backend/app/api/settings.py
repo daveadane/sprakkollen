@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = Field("http://localhost:5173", alias="CORS_ORIGINS")
     LOOKUP_CACHE_TTL_MINUTES: int = 1  # example: 60 minutes
 
+    # Unsplash (optional — leave blank to disable word images)
+    UNSPLASH_ACCESS_KEY: str = Field("", alias="UNSPLASH_ACCESS_KEY")
+
     # Email (optional — leave blank to disable)
     SMTP_HOST: str = Field("", alias="SMTP_HOST")
     SMTP_PORT: int = Field(587, alias="SMTP_PORT")

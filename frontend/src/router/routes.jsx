@@ -27,6 +27,8 @@ import BookSessionPage from "../pages/app/BookSessionPage";
 import AudioPage from "../pages/app/AudioPage";
 import SpeechPage from "../pages/app/SpeechPage";
 import OnboardingPage from "../pages/app/OnboardingPage";
+import TestPage from "../pages/app/TestPage";
+import DictationPage from "../pages/app/DictationPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -62,6 +64,8 @@ export const router = createBrowserRouter([
           { path: "/audio", element: <AudioPage /> },
           { path: "/speech", element: <SpeechPage /> },
           { path: "/onboarding", element: <OnboardingPage /> },
+          { path: "/test", element: <TestPage /> },
+          { path: "/dictation", element: <DictationPage /> },
         ],
       },
     ],

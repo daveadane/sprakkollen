@@ -249,3 +249,66 @@ class SwedishWordOut(BaseModel):
     word: str
     article: str
     confidence: Optional[float] = None
+
+
+# ---------- Mixed Test ----------
+class TestQuestionOut(BaseModel):
+    id: str
+    type: Literal["article", "grammar"]
+    question: str
+    word: Optional[str] = None
+    choices: List[str]
+    correct_answer: str
+
+
+class TestSessionOut(BaseModel):
+    id: int
+    questions: List[TestQuestionOut]
+
+
+class TestAnswerIn(BaseModel):
+    id: str
+    chosen: str
+
+
+class TestSubmitIn(BaseModel):
+    answers: List[TestAnswerIn]
+
+
+class TestFeedbackItem(BaseModel):
+    id: str
+    type: str
+    question: str
+    your_answer: str
+    correct_answer: str
+    correct: bool
+
+
+class TestResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+    feedback: List[TestFeedbackItem]
+
+
+# ---------- Dictation ----------
+class DictationSessionOut(BaseModel):
+    id: int
+    words: List[str]
+
+
+class DictationSubmitIn(BaseModel):
+    answers: List[str]
+
+
+class DictationFeedbackItem(BaseModel):
+    word: str
+    typed: str
+    correct: bool
+
+
+class DictationResultOut(BaseModel):
+    score: int
+    total: int
+    accuracy: int
+    feedback: List[DictationFeedbackItem]

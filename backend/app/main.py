@@ -15,6 +15,9 @@ from app.api.endpoints.grammar import router as grammar_router
 from app.api.endpoints.progress import router as progress_router
 from app.api.endpoints.reading import router as reading_router
 from app.api.endpoints.suggestions import router as suggestions_router
+from app.api.endpoints.test import router as test_router
+from app.api.endpoints.dictation import router as dictation_router
+from app.api.endpoints.images import router as images_router
 
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
@@ -45,5 +48,8 @@ app.include_router(grammar_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
 app.include_router(reading_router, prefix="/api")
 app.include_router(suggestions_router, prefix="/api")
+app.include_router(test_router, prefix="/api")
+app.include_router(dictation_router, prefix="/api")
+app.include_router(images_router, prefix="/api")
 
 

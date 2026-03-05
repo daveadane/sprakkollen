@@ -39,7 +39,9 @@ class User(Base):
     vocab_words: Mapped[List["VocabularyWord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     practice_sessions: Mapped[List["PracticeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     grammar_sessions: Mapped[List["GrammarSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-   
+    test_sessions: Mapped[List["TestSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    dictation_sessions: Mapped[List["DictationSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
     search_history = relationship(
     "SearchHistory",
     back_populates="user",
@@ -267,8 +269,41 @@ class WordSuggestion(Base):
     user: Mapped["User"] = relationship("User")
 
 
+class TestSession(Base):
+    """A mixed test combining article and grammar questions."""
+    __tablename__ = "test_sessions"
+    __table_args__ = (Index("ix_test_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    questions: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="test_sessions")
 
 
+class DictationSession(Base):
+    """User listens to a word via TTS and types what they hear."""
+    __tablename__ = "dictation_sessions"
+    __table_args__ = (Index("ix_dictation_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    words: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="dictation_sessions")
 
 
-    
+class WordImageCache(Base):
+    """Caches Unsplash image URLs per word to avoid repeated API calls."""
+    __tablename__ = "word_image_cache"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    word: Mapped[str] = mapped_column(String(120), nullable=False, unique=True, index=True)
+    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
