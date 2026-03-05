@@ -80,7 +80,9 @@ class PracticeSessionCreateOut(BaseModel):
 
 
 class PracticeQuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     word: str
+    correct_article: Article
 
 
 class PracticeSessionOut(BaseModel):

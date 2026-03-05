@@ -9,21 +9,34 @@ from app.api.security import get_current_user
 
 router = APIRouter(prefix="/vocab", tags=["vocab"])
 
+@router.get("/count")
+def count_vocab(
+    search: str = Query(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    q = db.query(VocabularyWord).filter(VocabularyWord.user_id == user.id)
+    if search:
+        q = q.filter(VocabularyWord.word.ilike(f"%{search}%"))
+    return {"count": q.count()}
+
+
 @router.get("", response_model=list[VocabOut])
 def list_vocab(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    search: str = Query(""),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    return (
+    q = (
         db.query(VocabularyWord)
         .filter(VocabularyWord.user_id == user.id)
         .order_by(VocabularyWord.created_at.desc(), VocabularyWord.id.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
     )
+    if search:
+        q = q.filter(VocabularyWord.word.ilike(f"%{search}%"))
+    return q.offset(skip).limit(limit).all()
 
 @router.post("", response_model=VocabOut, status_code=status.HTTP_201_CREATED)
 def create_vocab(

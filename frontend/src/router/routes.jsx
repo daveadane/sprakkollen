@@ -26,6 +26,7 @@ import BooksPage from "../pages/app/BooksPage";
 import BookSessionPage from "../pages/app/BookSessionPage";
 import AudioPage from "../pages/app/AudioPage";
 import SpeechPage from "../pages/app/SpeechPage";
+import OnboardingPage from "../pages/app/OnboardingPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
           { path: "/books/:id", element: <BookSessionPage /> },
           { path: "/audio", element: <AudioPage /> },
           { path: "/speech", element: <SpeechPage /> },
+          { path: "/onboarding", element: <OnboardingPage /> },
         ],
       },
     ],

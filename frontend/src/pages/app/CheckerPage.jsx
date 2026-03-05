@@ -10,6 +10,24 @@ export default function CheckerPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [notFound, setNotFound] = useState(false);
 
+  // Favorite / save to vocabulary
+  const [savedStatus, setSavedStatus] = useState(""); // "" | "saving" | "saved" | "exists" | error
+
+  async function saveToVocab() {
+    if (!result) return;
+    setSavedStatus("saving");
+    try {
+      await apiFetch("/vocab", {
+        method: "POST",
+        body: { word: result.word, article: result.article, source: "checker" },
+      });
+      setSavedStatus("saved");
+    } catch (e) {
+      if (e?.status === 409) setSavedStatus("exists");
+      else setSavedStatus(e?.message || "Failed to save");
+    }
+  }
+
   // Suggestion state
   const [showSuggest, setShowSuggest] = useState(false);
   const [suggestArticle, setSuggestArticle] = useState("en");
@@ -27,6 +45,7 @@ export default function CheckerPage() {
     setNotFound(false);
     setShowSuggest(false);
     setSuggestStatus("");
+    setSavedStatus("");
 
     try {
       const data = await apiFetch(`/lookup?word=${encodeURIComponent(w)}`, { method: "GET" });
@@ -130,9 +149,27 @@ export default function CheckerPage() {
 
       <ResultCard result={result} />
 
-      {/* Flag incorrect word (after a successful result) */}
+      {/* Save to vocabulary + Flag row */}
       {result && !showSuggest && (
-        <div className="text-right">
+        <div className="flex items-center justify-between">
+          {/* Save to vocabulary */}
+          <div className="flex items-center gap-3">
+            {savedStatus === "saved" ? (
+              <span className="text-sm font-semibold text-green-600">✓ Saved to vocabulary</span>
+            ) : savedStatus === "exists" ? (
+              <span className="text-sm text-slate-400">Already in vocabulary</span>
+            ) : (
+              <button
+                onClick={saveToVocab}
+                disabled={savedStatus === "saving"}
+                className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              >
+                {savedStatus === "saving" ? "Saving…" : "⭐ Save to vocabulary"}
+              </button>
+            )}
+          </div>
+
+          {/* Flag as incorrect */}
           <button
             onClick={openFlag}
             className="text-xs text-slate-400 hover:text-red-500 underline"

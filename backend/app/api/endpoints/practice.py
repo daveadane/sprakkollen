@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.api.db_setup import get_db
-from app.api.models import PracticeSession, PracticeAnswer, PracticeQuestion, User, VocabularyWord
+from app.api.models import PracticeSession, PracticeAnswer, PracticeQuestion, User, SwedishWord
 from app.api.security import get_current_user
 from app.api.schemas import PracticeResultOut, PracticeSubmitIn, PracticeSessionOut, PracticeSessionCreateOut
-import random
 
 router = APIRouter(prefix="/practice", tags=["practice"])
 
@@ -38,27 +37,17 @@ def get_practice_session(
     if session.questions:
         return session
 
-    # Load user vocabulary
-    vocab = db.execute(
-        select(VocabularyWord).where(VocabularyWord.user_id == user.id)
-    ).scalars().all()
+    # Pick 10 random words from the global swedish_words DB
+    selected_words = (
+        db.query(SwedishWord)
+        .order_by(func.random())
+        .limit(10)
+        .all()
+    )
+    if not selected_words:
+        raise HTTPException(status_code=503, detail="Word database is empty. Run load_words_to_db.py first.")
 
-    # Fallback list if no vocab
-    if not vocab:
-        fallback = [
-            ("hus", "ett"),
-            ("bil", "en"),
-            ("bord", "ett"),
-            ("stol", "en"),
-            ("fönster", "ett"),
-        ]
-        words = fallback
-    else:
-        words = [(v.word, v.article) for v in vocab]
-
-    # Shuffle and take 5
-    random.shuffle(words)
-    selected = words[:5]
+    selected = [(w.word, w.article) for w in selected_words]
 
     # Create questions
     for word, article in selected:

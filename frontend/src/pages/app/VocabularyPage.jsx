@@ -225,36 +225,56 @@ const USER_LIMIT = 20;
 
 function UserVocabularyPage() {
   const [items, setItems] = useState([]);
-  const [skip, setSkip] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  async function load(currentSkip = 0, reset = true) {
+  const totalPages = Math.max(1, Math.ceil(total / USER_LIMIT));
+
+  async function load(p = 1, q = search) {
     setLoading(true);
     setErr("");
     try {
-      const data = await apiFetch(`/vocab?skip=${currentSkip}&limit=${USER_LIMIT}`);
-      const rows = Array.isArray(data) ? data : [];
-      if (reset) setItems(rows);
-      else setItems((prev) => [...prev, ...rows]);
-      setHasMore(rows.length === USER_LIMIT);
-      setSkip(currentSkip + rows.length);
+      const params = new URLSearchParams({ skip: (p - 1) * USER_LIMIT, limit: USER_LIMIT });
+      if (q) params.set("search", q);
+      const [data, countData] = await Promise.all([
+        apiFetch(`/vocab?${params}`),
+        apiFetch(`/vocab/count${q ? `?search=${encodeURIComponent(q)}` : ""}`),
+      ]);
+      setItems(Array.isArray(data) ? data : []);
+      setTotal(countData?.count ?? 0);
     } catch (e) {
       setErr(e?.message || "Failed to load vocabulary");
-      if (reset) setItems([]);
+      setItems([]);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { load(0, true); }, []);
+  useEffect(() => { load(1, ""); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSearch(e) {
+    e.preventDefault();
+    setSearch(searchInput);
+    setPage(1);
+    load(1, searchInput);
+  }
+
+  function goToPage(p) {
+    setPage(p);
+    load(p, search);
+  }
 
   async function addWord(newItem) {
     setErr("");
     try {
-      const created = await apiFetch("/vocab", { method: "POST", body: newItem });
-      setItems((prev) => [created, ...prev]);
+      await apiFetch("/vocab", { method: "POST", body: newItem });
+      // Reload current page to reflect new count
+      load(1, search);
+      setPage(1);
     } catch (e) {
       setErr(e?.message || "Failed to add word");
     }
@@ -278,7 +298,12 @@ function UserVocabularyPage() {
     setErr("");
     try {
       await apiFetch(`/vocab/${id}`, { method: "DELETE" });
-      setItems((prev) => prev.filter((x) => x.id !== id));
+      // If last item on page, go back one
+      const newTotal = total - 1;
+      const newPages = Math.max(1, Math.ceil(newTotal / USER_LIMIT));
+      const newPage = Math.min(page, newPages);
+      setPage(newPage);
+      load(newPage, search);
     } catch (e) {
       setErr(e?.message || "Failed to delete word");
     }
@@ -288,7 +313,10 @@ function UserVocabularyPage() {
     <div className="mx-auto w-full max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-black tracking-tight">Vocabulary</h1>
-        <p className="mt-2 text-slate-600">Save words and practice them later.</p>
+        <p className="mt-2 text-slate-600">
+          Save words and practice them later.{" "}
+          {total > 0 && <span className="text-slate-400">({total} words)</span>}
+        </p>
         {err && (
           <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
             {err}
@@ -298,6 +326,31 @@ function UserVocabularyPage() {
 
       <AddWordForm onAdd={addWord} />
 
+      {/* Search */}
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search your words…"
+          className="flex-1 rounded-2xl border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          type="submit"
+          className="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+        >
+          Search
+        </button>
+        {search && (
+          <button
+            type="button"
+            onClick={() => { setSearchInput(""); setSearch(""); setPage(1); load(1, ""); }}
+            className="rounded-2xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Clear
+          </button>
+        )}
+      </form>
+
       {loading && items.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600">
           Loading vocabulary…
@@ -306,24 +359,39 @@ function UserVocabularyPage() {
         <WordList items={items} onEdit={editWord} onDelete={deleteWord} />
       )}
 
-      <div className="flex gap-3">
-        {hasMore && (
+      {/* Numbered pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 flex-wrap">
           <button
-            onClick={() => load(skip, false)}
-            disabled={loading}
-            className="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 1 || loading}
+            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-semibold disabled:opacity-40 hover:bg-slate-50"
           >
-            {loading ? "Loading…" : "Load more"}
+            ‹
           </button>
-        )}
-        <button
-          onClick={() => load(0, true)}
-          disabled={loading}
-          className="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
-        >
-          Refresh list
-        </button>
-      </div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              onClick={() => goToPage(n)}
+              disabled={loading}
+              className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
+                n === page
+                  ? "border-blue-500 bg-blue-600 text-white"
+                  : "border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page === totalPages || loading}
+            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-semibold disabled:opacity-40 hover:bg-slate-50"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -137,3 +137,45 @@ def get_progress(
         },
         "weakWords": weak_words,
     }
+
+
+@router.get("/history")
+def get_history(
+    limit: int = 15,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    practice_sessions = db.execute(
+        select(PracticeSession)
+        .where(PracticeSession.user_id == user.id)
+        .order_by(desc(PracticeSession.created_at))
+        .limit(limit)
+    ).scalars().all()
+
+    grammar_sessions = db.execute(
+        select(GrammarSession)
+        .where(GrammarSession.user_id == user.id)
+        .order_by(desc(GrammarSession.created_at))
+        .limit(limit)
+    ).scalars().all()
+
+    return {
+        "practice": [
+            {
+                "date": s.created_at.isoformat(),
+                "score": s.score,
+                "total": s.total_questions,
+                "pct": round((s.score / s.total_questions) * 100) if s.total_questions else 0,
+            }
+            for s in reversed(practice_sessions)
+        ],
+        "grammar": [
+            {
+                "date": s.created_at.isoformat(),
+                "score": s.score,
+                "total": s.total_questions,
+                "pct": round((s.score / s.total_questions) * 100) if s.total_questions else 0,
+            }
+            for s in reversed(grammar_sessions)
+        ],
+    }

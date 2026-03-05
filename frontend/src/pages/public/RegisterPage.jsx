@@ -38,7 +38,7 @@ export default function RegisterPage() {
         first_name: fn,
         last_name: ln,
       });
-      nav("/login");
+      nav("/login?onboarding=1");
     } catch (e) {
       setError(e.message);
     }

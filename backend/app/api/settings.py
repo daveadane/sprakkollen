@@ -15,6 +15,15 @@ class Settings(BaseSettings):
     API_PREFIX: str = Field("/api", alias="API_PREFIX")
     CORS_ORIGINS: str = Field("http://localhost:5173", alias="CORS_ORIGINS")
     LOOKUP_CACHE_TTL_MINUTES: int = 1  # example: 60 minutes
+
+    # Email (optional — leave blank to disable)
+    SMTP_HOST: str = Field("", alias="SMTP_HOST")
+    SMTP_PORT: int = Field(587, alias="SMTP_PORT")
+    SMTP_USER: str = Field("", alias="SMTP_USER")
+    SMTP_PASSWORD: str = Field("", alias="SMTP_PASSWORD")
+    SMTP_FROM: str = Field("", alias="SMTP_FROM")
+    APP_NAME: str = Field("SpråkKollen", alias="APP_NAME")
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]

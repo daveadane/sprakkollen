@@ -9,6 +9,7 @@ from sqlalchemy import select
 from app.api.db_setup import get_db
 from app.api.models import User, Token
 from app.api.schemas import RegisterIn, TokenOut
+from app.api.email import send_welcome_email
 from app.api.security import (
     create_database_token,
     get_current_token,
@@ -41,6 +42,10 @@ def register(payload: RegisterIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Email already registered")
 
     db.refresh(new_user)
+
+    # Send welcome email (silently skipped if SMTP not configured)
+    send_welcome_email(new_user.email, new_user.first_name or "")
+
     return {"id": new_user.id, "email": new_user.email}
 
 
