@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
+import AIFeedback from "../../components/AIFeedback";
 
 // ---- Speech Recognition helper ----
 function useSpeechRecognition(onResult) {
@@ -329,6 +330,13 @@ export default function ImageQuizPage() {
           <h2 className="text-3xl font-black">{result.score} / {result.total}</h2>
           <p className="text-xl font-bold text-slate-600">{pct}% correct</p>
         </div>
+
+        <AIFeedback
+          exerciseType="image_quiz"
+          score={result.score}
+          total={result.total}
+          wrongAnswers={result.feedback.filter((f) => !f.correct)}
+        />
 
         <div className="space-y-3">
           <h3 className="font-black text-slate-700">Breakdown</h3>

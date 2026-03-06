@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Unsplash (optional — leave blank to disable word images)
     UNSPLASH_ACCESS_KEY: str = Field("", alias="UNSPLASH_ACCESS_KEY")
 
+    # Anthropic (optional — leave blank to disable AI feedback)
+    ANTHROPIC_API_KEY: str = Field("", alias="ANTHROPIC_API_KEY")
+
     # Email (optional — leave blank to disable)
     SMTP_HOST: str = Field("", alias="SMTP_HOST")
     SMTP_PORT: int = Field(587, alias="SMTP_PORT")

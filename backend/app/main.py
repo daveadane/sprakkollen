@@ -19,6 +19,10 @@ from app.api.endpoints.test import router as test_router
 from app.api.endpoints.dictation import router as dictation_router
 from app.api.endpoints.images import router as images_router
 from app.api.endpoints.image_quiz import router as image_quiz_router
+from app.api.endpoints.ai_feedback import router as ai_feedback_router
+from app.api.endpoints.speaking_challenge import router as speaking_challenge_router
+from app.api.endpoints.podcasts import router as podcasts_router
+from app.api.endpoints.book_reader import router as book_reader_router
 
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
@@ -53,5 +57,9 @@ app.include_router(test_router, prefix="/api")
 app.include_router(dictation_router, prefix="/api")
 app.include_router(images_router, prefix="/api")
 app.include_router(image_quiz_router, prefix="/api")
+app.include_router(ai_feedback_router, prefix="/api")
+app.include_router(speaking_challenge_router, prefix="/api")
+app.include_router(podcasts_router, prefix="/api")
+app.include_router(book_reader_router, prefix="/api")
 
 

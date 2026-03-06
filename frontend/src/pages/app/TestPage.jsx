@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
+import AIFeedback from "../../components/AIFeedback";
 
 export default function TestPage() {
   const navigate = useNavigate();
@@ -202,6 +203,15 @@ export default function TestPage() {
             {pct >= 80 ? "Great work! Keep it up." : pct >= 50 ? "Good effort — practice more to improve." : "Keep studying — you'll get there!"}
           </p>
         </div>
+
+        <AIFeedback
+          exerciseType="test"
+          score={result.score}
+          total={result.total}
+          wrongAnswers={result.feedback
+            .filter((f) => !f.correct)
+            .map((f) => ({ word: f.correct_answer, typed: f.your_answer }))}
+        />
 
         {/* Feedback breakdown */}
         <div className="space-y-2">

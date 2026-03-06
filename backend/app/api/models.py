@@ -42,6 +42,9 @@ class User(Base):
     test_sessions: Mapped[List["TestSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     dictation_sessions: Mapped[List["DictationSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     image_quiz_sessions: Mapped[List["ImageQuizSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    speaking_sessions: Mapped[List["SpeakingChallengeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    podcast_sessions: Mapped[List["PodcastSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    book_reading_sessions: Mapped[List["BookReadingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     search_history = relationship(
     "SearchHistory",
@@ -313,6 +316,54 @@ class ImageQuizSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="image_quiz_sessions")
+
+
+class SpeakingChallengeSession(Base):
+    """User records themselves speaking Swedish for a daily challenge prompt."""
+    __tablename__ = "speaking_challenge_sessions"
+    __table_args__ = (Index("ix_speaking_challenge_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    challenge_day: Mapped[int] = mapped_column(Integer, nullable=False)  # 1–30
+    transcript: Mapped[str] = mapped_column(Text, nullable=False)
+    ai_feedback: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="speaking_sessions")
+
+
+class BookReadingSession(Base):
+    """Records when a user completes a chapter of a Gutenberg book."""
+    __tablename__ = "book_reading_sessions"
+    __table_args__ = (Index("ix_book_reading_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    gutenberg_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    book_title: Mapped[str] = mapped_column(String(300), nullable=False)
+    chapter_num: Mapped[int] = mapped_column(Integer, nullable=False)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="book_reading_sessions")
+
+
+class PodcastSession(Base):
+    """Records when a user listens to a podcast episode and completes comprehension questions."""
+    __tablename__ = "podcast_sessions"
+    __table_args__ = (Index("ix_podcast_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    episode_id: Mapped[str] = mapped_column(String(50), nullable=False)
+    episode_title: Mapped[str] = mapped_column(String(300), nullable=False)
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="podcast_sessions")
 
 
 class WordImageCache(Base):

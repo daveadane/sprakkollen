@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
+import AIFeedback from "../../components/AIFeedback";
 
 function speak(word) {
   window.speechSynthesis.cancel();
@@ -238,6 +239,15 @@ export default function DictationPage() {
           <h2 className="text-3xl font-black">{result.score} / {result.total}</h2>
           <p className="text-xl font-bold text-slate-600">{pct}% correct</p>
         </div>
+
+        <AIFeedback
+          exerciseType="dictation"
+          score={result.score}
+          total={result.total}
+          wrongAnswers={result.feedback
+            .filter((f) => !f.correct)
+            .map((f) => ({ word: f.word, typed: f.typed }))}
+        />
 
         <div className="space-y-2">
           <h3 className="font-black text-slate-700">Breakdown</h3>

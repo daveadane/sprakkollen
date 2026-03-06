@@ -99,6 +99,27 @@ export default function Sidebar() {
         </NavLink>
 
         <NavLink
+          to="/speaking-challenge"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          🎤 Speaking Challenge
+        </NavLink>
+
+        <NavLink
+          to="/podcasts"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          🎙️ Podcasts
+        </NavLink>
+
+        <NavLink
+          to="/book-reader"
+          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        >
+          📚 Books
+        </NavLink>
+
+        <NavLink
           to="/profile"
           className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
         >

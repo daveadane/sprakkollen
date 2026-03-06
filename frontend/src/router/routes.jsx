@@ -30,6 +30,12 @@ import OnboardingPage from "../pages/app/OnboardingPage";
 import TestPage from "../pages/app/TestPage";
 import DictationPage from "../pages/app/DictationPage";
 import ImageQuizPage from "../pages/app/ImageQuizPage";
+import SpeakingChallengePage from "../pages/app/SpeakingChallengePage";
+import ChallengeDayPage from "../pages/app/ChallengeDayPage";
+import PodcastsPage from "../pages/app/PodcastsPage";
+import PodcastEpisodePage from "../pages/app/PodcastEpisodePage";
+import BookReaderPage from "../pages/app/BookReaderPage";
+import BookChapterPage from "../pages/app/BookChapterPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -68,6 +74,12 @@ export const router = createBrowserRouter([
           { path: "/test", element: <TestPage /> },
           { path: "/dictation", element: <DictationPage /> },
           { path: "/image-quiz", element: <ImageQuizPage /> },
+          { path: "/speaking-challenge", element: <SpeakingChallengePage /> },
+          { path: "/speaking-challenge/:day", element: <ChallengeDayPage /> },
+          { path: "/podcasts", element: <PodcastsPage /> },
+          { path: "/podcasts/:id", element: <PodcastEpisodePage /> },
+          { path: "/book-reader", element: <BookReaderPage /> },
+          { path: "/book-reader/:bookId/chapter/:chapterNum", element: <BookChapterPage /> },
         ],
       },
     ],

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../../utils/api";
+import AIFeedback from "../../components/AIFeedback";
 
 function speak(text) {
   window.speechSynthesis.cancel();
@@ -208,6 +209,12 @@ export default function AudioPage() {
             Try again
           </button>
         </div>
+
+        <AIFeedback
+          exerciseType="test"
+          score={result.score}
+          total={result.total}
+        />
       </div>
     );
   }
