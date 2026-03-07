@@ -100,11 +100,12 @@ export default function BookReaderPage() {
 
         {books.map((book) => {
           const chapDone = progressMap[book.id] || 0;
+          const nextChapter = chapDone + 1;
           return (
             <button
               key={book.id}
               onClick={() =>
-                navigate(`/book-reader/${book.id}/chapter/1`, {
+                navigate(`/book-reader/${book.id}/chapter/${nextChapter}`, {
                   state: { book },
                 })
               }
@@ -131,13 +132,22 @@ export default function BookReaderPage() {
                   <p className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">
                     {book.title}
                   </p>
-                  {chapDone > 0 && (
+                  {chapDone > 0 ? (
                     <span className="shrink-0 rounded-full bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5">
-                      Ch. {chapDone} ✓
+                      Continue Ch. {nextChapter}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5">
+                      Start
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">{book.author}</p>
+                {chapDone > 0 && (
+                  <p className="text-xs text-green-600 mt-0.5 font-semibold">
+                    ✓ {chapDone} chapter{chapDone !== 1 ? "s" : ""} completed
+                  </p>
+                )}
                 {book.subjects.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {book.subjects.slice(0, 2).map((s) => (

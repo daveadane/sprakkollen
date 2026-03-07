@@ -2,31 +2,48 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../state/useAuth";
+import { apiFetch } from "../../utils/api";
+
+const LEVELS = [
+  { value: "beginner", label: "Beginner", desc: "A1–A2 · Just starting out", emoji: "🌱" },
+  { value: "intermediate", label: "Intermediate", desc: "B1–B2 · Conversational", emoji: "🌿" },
+  { value: "advanced", label: "Advanced", desc: "C1+ · Near-fluent", emoji: "🌳" },
+];
 
 const STEPS = [
   {
+    key: "welcome",
     emoji: "🇸🇪",
     title: "Welcome to SpråkKollen!",
     body: "Your personal Swedish language learning companion. We'll help you master en/ett, grammar, reading, and more.",
     cta: "Let's go",
   },
   {
+    key: "level",
     emoji: "🎯",
+    title: "What's your Swedish level?",
+    body: "We'll adjust quiz difficulty and content to match where you are. You can always change this in your Profile.",
+    cta: "Continue",
+  },
+  {
+    key: "features",
+    emoji: "✨",
     title: "What can you do here?",
     features: [
       { icon: "🔍", label: "Checker", desc: "Look up whether any noun is en or ett instantly." },
       { icon: "🎯", label: "Practice", desc: "Drill en/ett with randomised word quizzes." },
       { icon: "📝", label: "Grammar", desc: "Test your knowledge of Swedish grammar rules." },
-      { icon: "📚", label: "Reading", desc: "Read Swedish texts and answer comprehension questions." },
-      { icon: "🔊", label: "Audio", desc: "Listen to words and identify them." },
-      { icon: "🎤", label: "Speech", desc: "Speak Swedish words and get instant feedback." },
+      { icon: "📚", label: "Books", desc: "Read classic Swedish literature with AI comprehension quizzes." },
+      { icon: "🎙️", label: "Podcasts", desc: "Listen to Swedish radio and answer questions." },
+      { icon: "🎤", label: "Speaking", desc: "30-day speaking challenge with AI feedback." },
     ],
     cta: "Sounds great!",
   },
   {
+    key: "streak",
     emoji: "🔥",
     title: "Build your streak",
-    body: "Practice a little every day to keep your streak alive. You earn XP for every correct answer and level up over time.",
+    body: "Practice a little every day. Every feature adapts to your level as you improve.",
     cta: "Go to Dashboard",
   },
 ];
@@ -35,12 +52,26 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(0);
+  const [selectedLevel, setSelectedLevel] = useState("beginner");
+  const [saving, setSaving] = useState(false);
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
   const firstName = user?.first_name || "";
 
-  function next() {
+  async function next() {
+    if (current.key === "level") {
+      // Save level before moving on
+      setSaving(true);
+      try {
+        await apiFetch("/auth/me", { method: "PATCH", body: { level: selectedLevel } });
+      } catch {
+        // non-fatal — continue anyway
+      } finally {
+        setSaving(false);
+      }
+    }
+
     if (isLast) {
       localStorage.setItem("sprak_onboarded", "1");
       navigate("/dashboard");
@@ -76,11 +107,42 @@ export default function OnboardingPage() {
           {step === 0 && firstName ? `${current.title.replace("!", ",")} ${firstName}!` : current.title}
         </h1>
 
-        {/* Body or feature list */}
+        {/* Body */}
         {current.body && (
           <p className="mt-3 text-center text-slate-600">{current.body}</p>
         )}
 
+        {/* Level picker */}
+        {current.key === "level" && (
+          <div className="mt-5 space-y-3">
+            {LEVELS.map((lvl) => {
+              const isActive = selectedLevel === lvl.value;
+              return (
+                <button
+                  key={lvl.value}
+                  onClick={() => setSelectedLevel(lvl.value)}
+                  className={[
+                    "w-full flex items-center gap-4 rounded-xl border-2 p-4 text-left transition",
+                    isActive
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300",
+                  ].join(" ")}
+                >
+                  <span className="text-2xl">{lvl.emoji}</span>
+                  <div>
+                    <p className={`font-bold ${isActive ? "text-blue-700" : "text-slate-800"}`}>
+                      {lvl.label}
+                    </p>
+                    <p className="text-sm text-slate-500">{lvl.desc}</p>
+                  </div>
+                  {isActive && <span className="ml-auto text-blue-500 font-black">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Feature list */}
         {current.features && (
           <ul className="mt-5 space-y-3">
             {current.features.map((f) => (
@@ -98,9 +160,10 @@ export default function OnboardingPage() {
         {/* CTA */}
         <button
           onClick={next}
-          className="mt-6 w-full rounded-2xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-700"
+          disabled={saving}
+          className="mt-6 w-full rounded-2xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:opacity-60"
         >
-          {current.cta}
+          {saving ? "Saving…" : current.cta}
         </button>
 
         {/* Skip */}

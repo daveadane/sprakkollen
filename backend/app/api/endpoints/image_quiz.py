@@ -21,31 +21,92 @@ WORD_COUNT = 8
 
 # Curated list of common, visual Swedish nouns — always have clear Unsplash photos
 VISUAL_WORDS = [
-    # Animals
-    "hund", "katt", "häst", "fågel", "fisk", "ko", "får", "gris", "kanin",
+    # Animals — domestic & farm
+    "hund", "katt", "häst", "ko", "får", "gris", "kanin", "kyckling", "anka",
+    "gås", "kalkon", "åsna", "get", "lamm", "kalv",
+    # Animals — wild
     "björn", "lejon", "tiger", "elefant", "orm", "apa", "uggla", "räv", "varg",
-    "anka", "kyckling", "sköldpadda", "delfin", "krokodil", "flodhäst",
-    # Food & drink
-    "bröd", "ägg", "mjölk", "ost", "smör", "kött", "äpple", "banan", "tomat",
-    "potatis", "morot", "lök", "gurka", "apelsin", "jordgubbe", "pizza", "soppa",
-    "kaffe", "te", "juice", "vatten", "tårta", "glass", "choklad", "ris", "pasta",
-    # Clothing
+    "sköldpadda", "delfin", "krokodil", "flodhäst", "zebra", "giraff", "pingvin",
+    "papegoja", "hamster", "ekorre", "igelkott", "groda", "haj", "val",
+    "bläckfisk", "fasan", "örn", "flamingo", "känguru", "koala", "panda",
+    "gorilla", "isbjörn", "säl", "älg", "ren", "kamel", "lama", "gepard",
+    "puma", "jaguar", "bäver", "lo",
+    # Fish & insects
+    "fisk", "lax", "tonfisk", "bi", "fjäril", "myra", "nyckelpiga",
+    # Food — fruit
+    "äpple", "banan", "apelsin", "jordgubbe", "plommon", "päron", "druva",
+    "ananas", "mango", "melon", "citron", "körsbär", "persika", "kiwi",
+    "kokosnöt", "papaya", "granatäpple", "avokado", "hallon", "blåbär",
+    "lingon", "fikon",
+    # Food — vegetables
+    "tomat", "potatis", "morot", "lök", "gurka", "broccoli", "blomkål",
+    "majs", "svamp", "vitlök", "spenat", "kål", "rödbeta", "selleri",
+    "purjolök", "sparris", "paprika", "ärtskida", "zucchini", "aubergine",
+    "ingefära", "rädisa",
+    # Food — other
+    "bröd", "ägg", "mjölk", "ost", "smör", "kött", "pizza", "soppa",
+    "kaffe", "te", "juice", "vatten", "tårta", "glass", "choklad", "ris",
+    "pasta", "sallad", "hamburgare", "sushi", "tacos", "pannkaka", "våffla",
+    "kanelbulle", "smörgås", "gryta", "grädde", "yoghurt", "sylt", "honung",
+    "salt", "socker", "olja",
+    # Clothing & accessories
     "skjorta", "jacka", "sko", "mössa", "handskar", "klänning", "byxor",
-    # Body
+    "kjol", "strumpor", "tröja", "kappa", "halsduk", "hatt", "solglasögon",
+    "bälte", "slips", "kostym", "pyjamas", "shorts", "kofta", "jeans",
+    "sandal", "stövel", "sneakers", "väska", "ryggsäck", "portfölj",
+    # Body parts
     "öga", "öra", "näsa", "hand", "fot", "finger", "huvud", "rygg",
-    # Household objects
-    "stol", "bord", "säng", "lampa", "spegel", "nyckel", "kniv", "gaffel",
-    "tallrik", "kopp", "glas", "flaska", "paraply", "väska", "kamera",
-    # Nature
+    "mage", "axel", "arm", "knä", "armbåge", "tand", "läpp", "panna",
+    "nacke", "tumme", "handled", "ankel",
+    # Household — furniture & rooms
+    "stol", "bord", "säng", "soffa", "garderob", "hylla", "matta", "kudde",
+    "filt", "spegel", "lampa", "gardin", "blomkruka", "vas", "korg",
+    # Household — kitchen
+    "kniv", "gaffel", "sked", "tallrik", "kopp", "glas", "flaska", "skål",
+    "kastrull", "stekpanna", "ugn", "spis", "kylskåp", "mikrovågsugn",
+    "vattenkokare", "blandare", "diskmaskin", "korkskruv",
+    # Household — bathroom & other
+    "handduk", "tvål", "schampo", "tandborste", "kamm", "rakapparat",
+    "hammare", "skruvmejsel", "sax", "lim", "tejp", "ljus", "ficklampa",
+    "brandsläckare",
+    # Nature — landscape
     "träd", "blomma", "sol", "måne", "stjärna", "moln", "berg", "sjö",
-    "hav", "flod", "skog", "strand", "sten", "sand",
+    "hav", "flod", "skog", "strand", "sten", "sand", "gräs", "löv",
+    "rot", "gren", "snö", "is", "regnbåge", "vulkan", "ö", "dal",
+    "äng", "fält", "bäck", "vattenfall", "öken", "kaktus", "palm", "bambu",
+    # Flowers & plants
+    "ros", "solros", "tulpan", "lilja", "lavendel", "orkidé", "nejlika",
+    "hyacint", "bonsai",
     # Transport
     "bil", "buss", "tåg", "cykel", "båt", "flygplan", "motorcykel",
+    "helikopter", "ubåt", "lastbil", "ambulans", "brandmobil", "spårvagn",
+    "taxi", "segelbåt", "kanot", "skateboard", "sparkcykel", "rullskridskor",
+    "skidor", "snowboard", "traktor",
     # Places & buildings
-    "hus", "skola", "kyrka", "bro", "torn",
-    # Other everyday objects
-    "bok", "penna", "telefon", "dator", "boll", "gitarr", "piano", "klocka",
-    "lampa", "paraply", "flagga",
+    "hus", "skola", "kyrka", "bro", "torn", "sjukhus", "bibliotek",
+    "museum", "stadion", "teatern", "biograf", "restaurang", "hotell",
+    "slott", "fyr", "hamn", "flygplats", "station", "tält", "koja",
+    "stall", "bondgård", "fängelse", "fabrik",
+    # Technology & electronics
+    "telefon", "dator", "surfplatta", "hörlurar", "tangentbord", "mus",
+    "skärm", "kamera", "printer", "tv", "radio", "spelkonsol", "projektor",
+    "router", "usb",
+    # Musical instruments
+    "gitarr", "piano", "trummor", "violin", "flöjt", "saxofon", "trumpet",
+    "harpa", "cello", "klarinett", "banjo", "ukulele", "tuba", "dragspel",
+    "xylofon",
+    # Sports & hobbies
+    "fotboll", "tennis", "basket", "golf", "boxing", "boll", "nät",
+    "racket", "mål", "hantel", "hopprep", "skridskor", "surfbräda",
+    "fiskespö", "tält", "karta", "kompass", "kikare",
+    # School & office
+    "bok", "penna", "linjal", "suddgummi", "krita", "häftapparat",
+    "mapp", "glob", "mikroskop", "teleskop", "kalkylator", "anteckningsbok",
+    # Everyday objects
+    "flagga", "paraply", "klocka", "nyckel", "lås", "kedja", "ring",
+    "armband", "halsband", "örhänge", "glasögon", "plånbok", "mynt",
+    "sedel", "kuvert", "stämpel", "ballong", "present", "band", "rosett",
+    "termos", "matlåda", "picknikkorg",
 ]
 
 

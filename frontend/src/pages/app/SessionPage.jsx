@@ -208,6 +208,36 @@ export default function SessionPage() {
           ) : null}
         </div>
 
+        {/* Word-by-word review */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
+          <h2 className="font-bold text-slate-800">Review</h2>
+          {questions.map((q) => {
+            const ans = state.answers.find((a) => a.word === q.word);
+            const chosen = ans?.chosen;
+            const correct = chosen === correctMap[q.word];
+            return (
+              <div
+                key={q.word}
+                className={`rounded-xl border p-4 ${correct ? "border-green-200 bg-green-50" : "border-red-100 bg-red-50"}`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg leading-none">{correct ? "✅" : "❌"}</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-800">{q.word}</p>
+                    {!correct && (
+                      <p className="mt-0.5 text-sm text-slate-600">
+                        Your answer: <span className="font-medium text-red-700">{chosen || "—"}</span>
+                        {" · "}
+                        Correct: <span className="font-medium text-green-700">{correctMap[q.word]}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         <div className="flex gap-3">
           <button
             onClick={() => navigate("/practice")}

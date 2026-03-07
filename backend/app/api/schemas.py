@@ -154,6 +154,7 @@ class ProgressOut(BaseModel):
     xp: int
     streakDays: int
     lastStreakDay: Optional[str] = None
+    today_active: bool = False
     practice: ProgressBlock
     grammar: ProgressBlock
     weakWords: List[str] = []

@@ -2,9 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+
+_VALID_LEVELS = {"beginner", "intermediate", "advanced"}
+
+class UpdateLevelIn(BaseModel):
+    level: str
 
 from app.api.db_setup import get_db
 from app.api.models import User, Token
@@ -79,8 +85,22 @@ def me(current_user: User = Depends(get_current_user)):
         "last_name": current_user.last_name,
         "is_admin": current_user.is_admin,
         "is_active": current_user.is_active,
+        "level": current_user.level,
         "created_at": current_user.created_at,
     }
+
+
+@router.patch("/me")
+def update_me(
+    payload: UpdateLevelIn,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if payload.level not in _VALID_LEVELS:
+        raise HTTPException(status_code=422, detail=f"level must be one of {sorted(_VALID_LEVELS)}")
+    current_user.level = payload.level
+    db.commit()
+    return {"level": current_user.level}
 
 
 @router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)

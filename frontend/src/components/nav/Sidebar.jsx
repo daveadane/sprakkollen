@@ -1,138 +1,220 @@
-import { NavLink } from "react-router-dom";
-import useAuth from "../../state/useAuth"; // adjust path if needed
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import useAuth from "../../state/useAuth";
 
-const linkBase = "block rounded-lg px-3 py-2 text-sm font-semibold transition";
-const active = "bg-blue-600 text-white";
-const inactive = "text-slate-700 hover:bg-slate-100";
+const topLink =
+  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold transition";
+const subLink =
+  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition pl-7";
+const activeClass = "bg-blue-600 text-white";
+const inactiveClass = "text-slate-700 hover:bg-slate-100";
+
+function NavGroup({ label, icon, paths, children }) {
+  const { pathname } = useLocation();
+  const isAnyActive = paths.some((p) => pathname.startsWith(p));
+  const [open, setOpen] = useState(isAnyActive);
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition ${
+          isAnyActive
+            ? "text-blue-700 bg-blue-50"
+            : "text-slate-700 hover:bg-slate-100"
+        }`}
+      >
+        <span className="flex items-center gap-2.5">
+          <span>{icon}</span>
+          <span>{label}</span>
+        </span>
+        <span
+          className="text-[9px] text-slate-400 transition-transform duration-200 inline-block"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        >
+          ▶
+        </span>
+      </button>
+      {open && (
+        <div className="mt-0.5 ml-3 border-l-2 border-slate-100 pl-2 space-y-0.5">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Sidebar() {
   const { user } = useAuth();
 
   return (
-    <aside className="w-64 shrink-0 rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="mb-6 text-xl font-black">Språkkollen</div>
+    <aside className="w-56 shrink-0 rounded-2xl border border-slate-200 bg-white p-3 flex flex-col">
+      <div className="mb-5 px-2 text-xl font-black text-slate-800">
+        Språkkollen
+      </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-0.5 flex-1">
         <NavLink
           to="/dashboard"
           end
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          Dashboard
+          <span>🏠</span> Dashboard
         </NavLink>
 
-        <NavLink
-          to="/checker"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+        <NavGroup
+          label="Skills"
+          icon="✏️"
+          paths={["/checker", "/practice", "/vocabulary"]}
         >
-          Checker
-        </NavLink>
-
-        <NavLink
-          to="/practice"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Practice
-        </NavLink>
-
-        <NavLink
-          to="/vocabulary"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Vocabulary
-        </NavLink>
-
-        <NavLink
-          to="/progress"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Progress
-        </NavLink>
+          <NavLink
+            to="/checker"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Checker
+          </NavLink>
+          <NavLink
+            to="/practice"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Practice
+          </NavLink>
+          <NavLink
+            to="/vocabulary"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Vocabulary
+          </NavLink>
+        </NavGroup>
 
         <NavLink
           to="/grammar"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          Grammar
-        </NavLink>
-
-        <NavLink
-          to="/books"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Reading
-        </NavLink>
-
-        <NavLink
-          to="/audio"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Audio
-        </NavLink>
-
-        <NavLink
-          to="/speech"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Speech
+          <span>📝</span> Grammar
         </NavLink>
 
         <NavLink
           to="/test"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          Mixed Test
-        </NavLink>
-
-        <NavLink
-          to="/dictation"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          Dictation
+          <span>🧩</span> Mixed Test
         </NavLink>
 
         <NavLink
           to="/image-quiz"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          Image Quiz
+          <span>🖼️</span> Image Quiz
         </NavLink>
+
+        <NavGroup label="Read" icon="📖" paths={["/books", "/book-reader"]}>
+          <NavLink
+            to="/books"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Short Texts
+          </NavLink>
+          <NavLink
+            to="/book-reader"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Books
+          </NavLink>
+        </NavGroup>
+
+        <NavGroup
+          label="Media"
+          icon="🎧"
+          paths={["/podcasts", "/audio", "/speech", "/dictation"]}
+        >
+          <NavLink
+            to="/podcasts"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Podcasts
+          </NavLink>
+          <NavLink
+            to="/audio"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Audio
+          </NavLink>
+          <NavLink
+            to="/speech"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Speech
+          </NavLink>
+          <NavLink
+            to="/dictation"
+            className={({ isActive }) =>
+              `${subLink} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            Dictation
+          </NavLink>
+        </NavGroup>
 
         <NavLink
           to="/speaking-challenge"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          🎤 Speaking Challenge
+          <span>🎤</span> Speaking Challenge
         </NavLink>
 
         <NavLink
-          to="/podcasts"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          to="/progress"
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          🎙️ Podcasts
-        </NavLink>
-
-        <NavLink
-          to="/book-reader"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
-        >
-          📚 Books
+          <span>📊</span> Progress
         </NavLink>
 
         <NavLink
           to="/profile"
-          className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+          className={({ isActive }) =>
+            `${topLink} ${isActive ? activeClass : inactiveClass}`
+          }
         >
-          Profile
+          <span>👤</span> Profile
         </NavLink>
 
-        {/* ✅ Only show Admin if user is admin */}
         {user?.is_admin && (
           <NavLink
             to="/admin"
-            className={({ isActive }) => `${linkBase} ${isActive ? active : inactive}`}
+            className={({ isActive }) =>
+              `${topLink} ${isActive ? activeClass : inactiveClass}`
+            }
           >
-            Admin
+            <span>⚙️</span> Admin
           </NavLink>
         )}
       </nav>

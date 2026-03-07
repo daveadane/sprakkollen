@@ -140,7 +140,7 @@ def _chapter_count(text_url: str) -> int:
 # ---------------------------------------------------------------------------
 # AI questions
 # ---------------------------------------------------------------------------
-def _generate_questions(chapter_text: str, book_title: str) -> list[dict]:
+def _generate_questions(chapter_text: str, book_title: str, level: str = "intermediate") -> list[dict]:
     if not settings.ANTHROPIC_API_KEY:
         return _fallback_questions()
     try:
@@ -151,10 +151,17 @@ def _generate_questions(chapter_text: str, book_title: str) -> list[dict]:
     # Truncate to first 1200 chars for the prompt (saves tokens)
     excerpt = chapter_text[:1200].replace("\n", " ")
 
+    level_desc = {
+        "beginner": "simple vocabulary and basic plot events, suitable for A1-A2 learners",
+        "intermediate": "character motivations, themes, and moderate vocabulary, suitable for B1-B2 learners",
+        "advanced": "deeper themes, nuanced language, literary devices, suitable for C1+ learners",
+    }.get(level, "moderate difficulty")
+
     prompt = (
         f"You are a Swedish literature teacher. A student just read a chapter from the Swedish book '{book_title}'.\n\n"
         f"Chapter excerpt: {excerpt}\n\n"
         f"Create exactly 4 multiple-choice comprehension questions in English about this chapter.\n"
+        f"Difficulty level: {level_desc}.\n"
         f"Each question must have 4 choices (A, B, C, D) with exactly one correct answer.\n\n"
         f"Respond ONLY with a JSON array, no extra text:\n"
         f'[\n'
@@ -340,7 +347,7 @@ def get_chapter(
         )
 
     total_chapters = _chapter_count(text_url)
-    questions = _generate_questions(chapter_text, title or f"Gutenberg #{gutenberg_id}")
+    questions = _generate_questions(chapter_text, title or f"Gutenberg #{gutenberg_id}", current_user.level)
 
     return ChapterOut(
         gutenberg_id=gutenberg_id,

@@ -24,10 +24,22 @@ const FEATURES = [
   { label: "Image Quiz", desc: "See an image and type (or speak) the Swedish word.", path: "/image-quiz", color: "bg-violet-600 hover:bg-violet-700" },
 ];
 
+function relativeDate(isoString) {
+  const d = new Date(isoString);
+  const today = new Date();
+  const diffDays = Math.floor((today - d) / 86400000);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString("sv-SE");
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [p, setP] = useState(() => normalizeProgress(null));
+  const [todayActive, setTodayActive] = useState(false);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [wod, setWod] = useState(null);
   const [err, setErr] = useState("");
 
@@ -36,14 +48,27 @@ export default function DashboardPage() {
     (async () => {
       setErr("");
       try {
-        const [data, wordOfDay] = await Promise.allSettled([
+        const [data, wordOfDay, hist] = await Promise.allSettled([
           getProgress(),
           apiFetch("/word-of-day"),
+          apiFetch("/progress/history"),
         ]);
         if (alive) {
-          if (data.status === "fulfilled") setP(normalizeProgress(data.value));
-          else setErr(data.reason?.message || "Failed to load progress");
+          if (data.status === "fulfilled") {
+            setP(normalizeProgress(data.value));
+            setTodayActive(data.value?.today_active ?? false);
+          } else {
+            setErr(data.reason?.message || "Failed to load progress");
+          }
           if (wordOfDay.status === "fulfilled") setWod(wordOfDay.value);
+          if (hist.status === "fulfilled") {
+            const practice = (hist.value?.practice ?? []).map((s) => ({ ...s, type: "practice" }));
+            const grammar = (hist.value?.grammar ?? []).map((s) => ({ ...s, type: "grammar" }));
+            const combined = [...practice, ...grammar]
+              .sort((a, b) => new Date(b.date) - new Date(a.date))
+              .slice(0, 2);
+            setRecentActivity(combined);
+          }
         }
       } catch (e) {
         if (alive) setErr(e?.message || "Failed to load");
@@ -54,18 +79,7 @@ export default function DashboardPage() {
 
   const xp = p.xp;
   const streakDays = p.streakDays;
-  const practice = p.practice;
-  const grammar = p.grammar;
   const weakWords = p.weakWords ?? [];
-
-  const practiceAccuracy = practice.total > 0 ? `${practice.accuracy}%` : "—";
-  const grammarAccuracy = grammar.total > 0 ? `${grammar.accuracy}%` : "—";
-  const lastPracticeText = practice.lastPractice?.total > 0
-    ? `${practice.lastPractice.score} / ${practice.lastPractice.total}`
-    : "—";
-  const lastGrammarText = grammar.lastQuiz?.total > 0
-    ? `${grammar.lastQuiz.score} / ${grammar.lastQuiz.total}`
-    : "—";
 
   const { level, xpIntoLevel, xpToNext, pct } = useMemo(() => {
     const levelSize = 200;
@@ -92,11 +106,23 @@ export default function DashboardPage() {
       {/* Top row: Streak + XP + Word of the Day */}
       <section className="grid gap-4 sm:grid-cols-3">
         {/* Streak */}
-        <div className="flex flex-col justify-between rounded-2xl border border-orange-200 bg-orange-50 p-6">
-          <p className="text-sm font-semibold text-orange-600">Daily Streak</p>
-          <p className="mt-2 text-5xl font-black text-orange-500">{streakDays} 🔥</p>
+        <div className={`flex flex-col justify-between rounded-2xl border p-6 ${
+          todayActive
+            ? "border-green-200 bg-green-50"
+            : "border-orange-200 bg-orange-50"
+        }`}>
+          <p className={`text-sm font-semibold ${todayActive ? "text-green-600" : "text-orange-600"}`}>
+            Daily Streak
+          </p>
+          <p className={`mt-2 text-5xl font-black ${todayActive ? "text-green-500" : "text-orange-500"}`}>
+            {streakDays} 🔥
+          </p>
           <p className="mt-2 text-sm text-slate-600">
-            {streakDays === 0 ? "Start today to begin your streak!" : `${streakDays} day${streakDays !== 1 ? "s" : ""} in a row`}
+            {todayActive
+              ? "✓ Active today — keep it up!"
+              : streakDays === 0
+                ? "Start today to begin your streak!"
+                : "Do one activity to keep your streak!"}
           </p>
         </div>
 
@@ -130,6 +156,43 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Recent Activity */}
+      {recentActivity.length > 0 && (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="font-bold text-slate-800 mb-3">Continue Learning</h2>
+          <div className="space-y-3">
+            {recentActivity.map((s, idx) => (
+              <div key={idx} className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{s.type === "grammar" ? "📝" : "🎯"}</span>
+                  <div>
+                    <p className="font-semibold text-slate-800 text-sm">
+                      {s.type === "grammar" ? "Grammar Quiz" : "Practice"}
+                    </p>
+                    <p className="text-xs text-slate-500">{relativeDate(s.date)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    s.pct >= 80 ? "bg-green-100 text-green-700" :
+                    s.pct >= 50 ? "bg-amber-100 text-amber-700" :
+                    "bg-red-100 text-red-700"
+                  }`}>
+                    {s.score}/{s.total}
+                  </span>
+                  <button
+                    onClick={() => navigate(s.type === "grammar" ? "/grammar" : "/practice")}
+                    className="text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    Try again →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Feature cards */}
       <section>
         <h2 className="mb-3 text-lg font-black text-slate-700">What do you want to do?</h2>
@@ -147,44 +210,15 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Stats: Practice + Grammar side by side */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        {/* Practice stats */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-black text-slate-800">Practice</h3>
-            <button
-              onClick={() => navigate("/practice")}
-              className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-700"
-            >
-              Start
-            </button>
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <Stat label="Sessions" value={practice.sessions} />
-            <Stat label="Accuracy" value={practiceAccuracy} color="text-green-600" />
-            <Stat label="Last score" value={lastPracticeText} />
-          </div>
-        </div>
-
-        {/* Grammar stats */}
-        <div className="rounded-2xl border border-violet-200 bg-violet-50 p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-black text-violet-800">Grammar</h3>
-            <button
-              onClick={() => navigate("/grammar")}
-              className="rounded-xl bg-violet-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-violet-700"
-            >
-              Quiz me
-            </button>
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <Stat label="Sessions" value={grammar.sessions} valueColor="text-violet-700" />
-            <Stat label="Accuracy" value={grammarAccuracy} valueColor="text-green-600" />
-            <Stat label="Last score" value={lastGrammarText} valueColor="text-violet-700" />
-          </div>
-        </div>
-      </section>
+      {/* Progress link */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => navigate("/progress")}
+          className="text-sm font-semibold text-blue-600 hover:underline"
+        >
+          See full progress →
+        </button>
+      </div>
 
       {/* Weak words */}
       {weakWords.length > 0 && (
@@ -208,11 +242,3 @@ export default function DashboardPage() {
   );
 }
 
-function Stat({ label, value, valueColor = "text-slate-900" }) {
-  return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className={`mt-1 text-xl font-black ${valueColor}`}>{value}</p>
-    </div>
-  );
-}

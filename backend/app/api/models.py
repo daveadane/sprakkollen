@@ -33,6 +33,7 @@ class User(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    level: Mapped[str] = mapped_column(String(20), nullable=False, default="beginner")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -203,6 +204,7 @@ class GrammarQuestion(Base):
     correct_answer: Mapped[str] = mapped_column(String(120), nullable=False)
     choices: Mapped[list] = mapped_column(JSON, nullable=False)
     category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    level: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # NULL = all levels
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 

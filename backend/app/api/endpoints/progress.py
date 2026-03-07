@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, case
 
 from app.api.db_setup import get_db
 from app.api.models import (
@@ -112,9 +112,12 @@ def get_progress(
         streak += 1
         current -= timedelta(days=1)
 
+    today_active = date.today() in active_dates
+
     return {
         "xp": xp,
         "streakDays": streak,
+        "today_active": today_active,
         "practice": {
             "sessions": practice_sessions,
             "correct": practice_correct,
@@ -137,6 +140,37 @@ def get_progress(
         },
         "weakWords": weak_words,
     }
+
+
+@router.get("/words")
+def get_word_history(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    rows = db.execute(
+        select(
+            PracticeAnswer.word,
+            func.count(PracticeAnswer.id).label("total"),
+            func.sum(case((PracticeAnswer.is_correct == True, 1), else_=0)).label("correct"),
+            func.max(PracticeAnswer.created_at).label("last_seen"),
+        )
+        .join(PracticeSession, PracticeSession.id == PracticeAnswer.session_id)
+        .where(PracticeSession.user_id == user.id)
+        .group_by(PracticeAnswer.word)
+        .order_by(desc("last_seen"))
+        .limit(limit)
+    ).all()
+
+    return [
+        {
+            "word": r.word,
+            "total": r.total,
+            "correct": r.correct or 0,
+            "last_seen": r.last_seen.isoformat(),
+        }
+        for r in rows
+    ]
 
 
 @router.get("/history")

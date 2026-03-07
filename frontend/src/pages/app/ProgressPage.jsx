@@ -11,6 +11,7 @@ function fmtDate(iso) {
 export default function ProgressPage() {
   const [p, setP] = useState(() => normalizeProgress(null));
   const [history, setHistory] = useState({ practice: [], grammar: [] });
+  const [wordHistory, setWordHistory] = useState([]);
   const [err, setErr] = useState("");
 
   useEffect(() => {
@@ -18,14 +19,16 @@ export default function ProgressPage() {
     (async () => {
       setErr("");
       try {
-        const [prog, hist] = await Promise.allSettled([
+        const [prog, hist, words] = await Promise.allSettled([
           getProgress(),
           apiFetch("/progress/history"),
+          apiFetch("/progress/words"),
         ]);
         if (!alive) return;
         if (prog.status === "fulfilled") setP(normalizeProgress(prog.value));
         else setErr(prog.reason?.message || "Failed to load progress");
         if (hist.status === "fulfilled") setHistory(hist.value);
+        if (words.status === "fulfilled") setWordHistory(words.value);
       } catch (e) {
         if (alive) setErr(e?.message || "Failed to load");
       }
@@ -128,6 +131,31 @@ export default function ProgressPage() {
           </div>
         )}
       </div>
+
+      {/* En/ett word history */}
+      {wordHistory.length > 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="font-black text-slate-800">En/ett word history</h2>
+          <p className="mt-1 text-sm text-slate-500">Your most recently practiced words.</p>
+          <div className="mt-4 space-y-2">
+            {wordHistory.map((w) => {
+              const pct = w.total > 0 ? Math.round((w.correct / w.total) * 100) : 0;
+              return (
+                <div key={w.word} className="flex items-center gap-3">
+                  <span className="w-32 truncate font-semibold text-slate-800 text-sm">{w.word}</span>
+                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-amber-400" : "bg-red-400"}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500 w-16 text-right">{w.correct}/{w.total} correct</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { apiFetch } from "../../utils/api";
 
+const DIFFICULTIES = [
+  { label: "Easy", count: 5, desc: "5 questions", color: "border-green-300 bg-green-50 text-green-800" },
+  { label: "Medium", count: 10, desc: "10 questions", color: "border-amber-300 bg-amber-50 text-amber-800" },
+  { label: "Hard", count: 20, desc: "20 questions", color: "border-red-300 bg-red-50 text-red-800" },
+];
+
 export default function GrammarPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [difficulty, setDifficulty] = useState(DIFFICULTIES[0]);
 
   const [started, setStarted] = useState(false);
   const [sessionId, setSessionId] = useState(null);
@@ -26,7 +33,7 @@ export default function GrammarPage() {
     setLoading(true);
 
     try {
-      const created = await apiFetch("/grammar/sessions", { method: "POST" });
+      const created = await apiFetch(`/grammar/sessions?count=${difficulty.count}`, { method: "POST" });
       const id = created?.id;
       if (!id) throw new Error("Backend did not return session id");
 
@@ -108,6 +115,7 @@ export default function GrammarPage() {
 
   // end screen
   if (started && total > 0 && i >= total) {
+    const answerMap = Object.fromEntries(answers.map((a) => [a.question_id, a.chosen]));
     return (
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <h1 className="text-3xl font-black tracking-tight">Grammar Quiz Complete</h1>
@@ -120,12 +128,42 @@ export default function GrammarPage() {
           {err ? <p className="mt-3 text-sm font-semibold text-red-600">{err}</p> : null}
         </div>
 
+        {/* Question review */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
+          <h2 className="font-bold text-slate-800">Review</h2>
+          {questions.map((q) => {
+            const chosen = answerMap[q.question_id];
+            const correct = normalize(chosen) === normalize(q.correct_answer);
+            return (
+              <div
+                key={q.question_id}
+                className={`rounded-xl border p-4 ${
+                  correct ? "border-green-200 bg-green-50" : "border-red-100 bg-red-50"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-lg leading-none mt-0.5">{correct ? "✅" : "❌"}</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-800">{q.question}</p>
+                    {!correct && (
+                      <p className="mt-1 text-sm text-slate-600">
+                        Your answer: <span className="font-medium text-red-700">{chosen || "—"}</span>
+                        {" · "}
+                        Correct: <span className="font-medium text-green-700">{q.correct_answer}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         <button
-          onClick={start}
-          disabled={loading}
-          className="w-full rounded-2xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+          onClick={() => setStarted(false)}
+          className="w-full rounded-2xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700"
         >
-          {loading ? "Starting..." : "Try Again"}
+          Play Again
         </button>
       </div>
     );
@@ -137,12 +175,28 @@ export default function GrammarPage() {
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Grammar</h1>
-          <p className="mt-2 text-slate-600">5 random questions each round.</p>
+          <p className="mt-2 text-slate-600">Choose your difficulty and test your Swedish grammar.</p>
           {err ? <p className="mt-2 text-sm font-semibold text-red-600">{err}</p> : null}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-2">
-          <p className="font-semibold">Quiz length: 5 questions</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
+          <p className="font-bold text-slate-700">Difficulty</p>
+          <div className="grid grid-cols-3 gap-3">
+            {DIFFICULTIES.map((d) => (
+              <button
+                key={d.label}
+                onClick={() => setDifficulty(d)}
+                className={`rounded-2xl border-2 p-4 text-center font-bold transition ${
+                  difficulty.label === d.label
+                    ? d.color + " ring-2 ring-offset-1 ring-blue-400"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <p className="text-lg">{d.label}</p>
+                <p className="text-xs font-normal mt-0.5 opacity-80">{d.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         <button
@@ -150,7 +204,7 @@ export default function GrammarPage() {
           disabled={loading}
           className="w-full rounded-2xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700 disabled:opacity-60"
         >
-          {loading ? "Creating session..." : "Start Grammar Quiz"}
+          {loading ? "Creating session..." : `Start — ${difficulty.desc}`}
         </button>
       </div>
     );

@@ -4,7 +4,7 @@ import random
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from app.api.db_setup import get_db
 from app.api.models import GrammarSession, GrammarAnswer, GrammarQuestion, User
@@ -16,14 +16,20 @@ router = APIRouter(prefix="/grammar", tags=["grammar"])
 
 @router.post("/sessions")
 def create_grammar_session(
+    count: int = 5,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    all_questions = db.execute(select(GrammarQuestion)).scalars().all()
+    count = max(1, min(count, 30))
+    all_questions = db.execute(
+        select(GrammarQuestion).where(
+            or_(GrammarQuestion.level == user.level, GrammarQuestion.level.is_(None))
+        )
+    ).scalars().all()
     if not all_questions:
         raise HTTPException(status_code=500, detail="No grammar questions in database")
 
-    selected = random.sample(all_questions, min(5, len(all_questions)))
+    selected = random.sample(all_questions, min(count, len(all_questions)))
 
     s = GrammarSession(user_id=user.id, total_questions=len(selected), score=0)
     db.add(s)
