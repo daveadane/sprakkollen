@@ -40,11 +40,12 @@ _SKIP_TITLE_KEYWORDS = {
 # ---------------------------------------------------------------------------
 # Gutenberg / gutendex helpers
 # ---------------------------------------------------------------------------
+@lru_cache(maxsize=10)
 def _fetch_library(page: int = 1) -> dict:
     """Fetch a page of Swedish books from gutendex that have plain-text format."""
     url = f"{GUTENDEX}/books/?languages=sv&mime_type=text%2Fplain&page_size=32&page={page}"
     try:
-        resp = httpx.get(url, timeout=15)
+        resp = httpx.get(url, timeout=30)
         resp.raise_for_status()
         return resp.json()
     except Exception:
