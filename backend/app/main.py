@@ -38,9 +38,9 @@ app.add_middleware(
 )
 
 # ✅ Auto-create tables (NO Alembic)
-#@app.on_event("startup")
-#def on_startup():
- #Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 app.include_router(general_router, prefix="/api")
 app.include_router(lookup_router, prefix="/api")
