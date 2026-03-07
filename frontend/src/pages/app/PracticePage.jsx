@@ -30,27 +30,47 @@ export default function PracticePage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Practice</h1>
-        <p className="mt-2 text-slate-600">
+      {/* Header */}
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+        <h1 className="text-3xl font-black tracking-tight">✏️ Practice</h1>
+        <p className="mt-2 text-blue-100">
           Quick session: choose EN or ETT. Instant feedback. Track your score.
         </p>
-        {err ? <p className="mt-2 text-sm font-semibold text-red-600">{err}</p> : null}
+        {err ? <p className="mt-3 text-sm font-semibold text-red-300">{err}</p> : null}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
-        <p className="font-semibold">Session length: 5 questions</p>
-        <p className="text-sm text-slate-600">
-          Questions come from backend (practice_questions for this session).
-        </p>
+      {/* Session info card */}
+      <div className="rounded-2xl bg-white shadow-sm border border-slate-100 p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-xl">🎯</div>
+          <div>
+            <p className="font-bold text-slate-800">5 Questions per session</p>
+            <p className="text-sm text-slate-500">Randomly drawn from the full vocabulary database</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-xl">⚡</div>
+          <div>
+            <p className="font-bold text-slate-800">Instant feedback</p>
+            <p className="text-sm text-slate-500">See if each answer is correct right away</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-xl">📈</div>
+          <div>
+            <p className="font-bold text-slate-800">Track your progress</p>
+            <p className="text-sm text-slate-500">Every session is saved to your Progress page</p>
+          </div>
+        </div>
       </div>
 
       <button
         onClick={startSession}
         disabled={loading}
-        className="w-full rounded-2xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="w-full rounded-2xl py-4 font-bold text-white text-lg transition hover:opacity-90 disabled:opacity-60"
+        style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}
       >
-        {loading ? "Creating session..." : "Start Practice"}
+        {loading ? "Creating session..." : "Start Practice →"}
       </button>
     </div>
   );

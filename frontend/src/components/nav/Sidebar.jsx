@@ -3,11 +3,11 @@ import { NavLink, useLocation } from "react-router-dom";
 import useAuth from "../../state/useAuth";
 
 const topLink =
-  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold transition";
+  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150";
 const subLink =
-  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition pl-7";
-const activeClass = "bg-blue-600 text-white";
-const inactiveClass = "text-slate-700 hover:bg-slate-100";
+  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150 pl-8";
+const activeClass = "bg-white/15 text-white shadow-sm";
+const inactiveClass = "text-slate-300 hover:bg-white/10 hover:text-white";
 
 function NavGroup({ label, icon, paths, children, onNav }) {
   const { pathname } = useLocation();
@@ -18,25 +18,25 @@ function NavGroup({ label, icon, paths, children, onNav }) {
     <div>
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition ${
+        className={`w-full flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
           isAnyActive
-            ? "text-blue-700 bg-blue-50"
-            : "text-slate-700 hover:bg-slate-100"
+            ? "bg-white/15 text-white"
+            : "text-slate-300 hover:bg-white/10 hover:text-white"
         }`}
       >
-        <span className="flex items-center gap-2.5">
-          <span>{icon}</span>
+        <span className="flex items-center gap-3">
+          <span className="text-base">{icon}</span>
           <span>{label}</span>
         </span>
         <span
-          className="text-[9px] text-slate-400 transition-transform duration-200 inline-block"
+          className="text-[8px] text-slate-400 transition-transform duration-200 inline-block"
           style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
         >
           ▶
         </span>
       </button>
       {open && (
-        <div className="mt-0.5 ml-3 border-l-2 border-slate-100 pl-2 space-y-0.5">
+        <div className="mt-0.5 ml-2 border-l border-white/10 pl-2 space-y-0.5">
           {children}
         </div>
       )}
@@ -55,7 +55,7 @@ function SidebarNav({ user, onNav }) {
           `${topLink} ${isActive ? activeClass : inactiveClass}`
         }
       >
-        <span>🏠</span> Dashboard
+        <span className="text-base">🏠</span> Dashboard
       </NavLink>
 
       <NavGroup label="Skills" icon="✏️" paths={["/checker", "/practice", "/vocabulary"]} onNav={onNav}>
@@ -65,15 +65,15 @@ function SidebarNav({ user, onNav }) {
       </NavGroup>
 
       <NavLink to="/grammar" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>📝</span> Grammar
+        <span className="text-base">📝</span> Grammar
       </NavLink>
 
       <NavLink to="/test" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>🧩</span> Mixed Test
+        <span className="text-base">🧩</span> Mixed Test
       </NavLink>
 
       <NavLink to="/image-quiz" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>🖼️</span> Image Quiz
+        <span className="text-base">🖼️</span> Image Quiz
       </NavLink>
 
       <NavGroup label="Read" icon="📖" paths={["/books", "/book-reader"]} onNav={onNav}>
@@ -89,23 +89,51 @@ function SidebarNav({ user, onNav }) {
       </NavGroup>
 
       <NavLink to="/speaking-challenge" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>🎤</span> Speaking Challenge
+        <span className="text-base">🎤</span> Speaking Challenge
       </NavLink>
 
       <NavLink to="/progress" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>📊</span> Progress
+        <span className="text-base">📊</span> Progress
       </NavLink>
 
       <NavLink to="/profile" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-        <span>👤</span> Profile
+        <span className="text-base">👤</span> Profile
       </NavLink>
 
       {user?.is_admin && (
         <NavLink to="/admin" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
-          <span>⚙️</span> Admin
+          <span className="text-base">⚙️</span> Admin
         </NavLink>
       )}
     </nav>
+  );
+}
+
+function SidebarShell({ onClose, children }) {
+  return (
+    <aside
+      className="flex w-60 shrink-0 flex-col rounded-2xl p-3"
+      style={{
+        background: "linear-gradient(180deg, #1a2744 0%, #0f1b35 100%)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+      }}
+    >
+      <div className="mb-5 flex items-center justify-between px-2 pt-1">
+        <span className="text-lg font-black text-white tracking-tight">Språkkollen</span>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10"
+            aria-label="Close menu"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {children}
+    </aside>
   );
 }
 
@@ -115,37 +143,21 @@ export default function Sidebar({ mobileOpen, onClose }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-56 shrink-0 rounded-2xl border border-slate-200 bg-white p-3 flex-col self-start sticky top-24">
-        <div className="mb-5 px-2 text-xl font-black text-slate-800">
-          Språkkollen
-        </div>
-        <SidebarNav user={user} />
-      </aside>
+      <div className="hidden md:block self-start sticky top-24">
+        <SidebarShell>
+          <SidebarNav user={user} />
+        </SidebarShell>
+      </div>
 
       {/* Mobile drawer overlay */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={onClose}
-          />
-          {/* Drawer */}
-          <aside className="relative z-50 w-64 bg-white h-full overflow-y-auto p-3 shadow-xl flex flex-col">
-            <div className="mb-5 flex items-center justify-between px-2">
-              <span className="text-xl font-black text-slate-800">Språkkollen</span>
-              <button
-                onClick={onClose}
-                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
-                aria-label="Close menu"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <SidebarNav user={user} onNav={onClose} />
-          </aside>
+          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+          <div className="relative z-50 h-full overflow-y-auto">
+            <SidebarShell onClose={onClose}>
+              <SidebarNav user={user} onNav={onClose} />
+            </SidebarShell>
+          </div>
         </div>
       )}
     </>

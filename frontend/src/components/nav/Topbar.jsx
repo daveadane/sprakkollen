@@ -55,38 +55,44 @@ export default function Topbar({ onMenuOpen }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/90 backdrop-blur-md shadow-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuOpen}
-            className="md:hidden rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+            className="md:hidden rounded-xl p-2 text-slate-600 hover:bg-slate-100 transition"
             aria-label="Open menu"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="text-lg font-black tracking-tight">{title}</h1>
+          <h1 className="text-lg font-black tracking-tight text-slate-800">{title}</h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">
-            XP: {xp}
+        <div className="flex items-center gap-3">
+          <span
+            className="rounded-xl px-3 py-1.5 text-sm font-bold"
+            style={{ background: "linear-gradient(135deg,#006AA7,#004f80)", color: "#FECC00" }}
+          >
+            ⚡ {xp} XP
           </span>
 
           {!ready ? null : user ? (
             <>
-              <span className="hidden text-sm text-slate-600 sm:inline">{user.email}</span>
+              <span className="hidden text-sm font-medium text-slate-500 sm:inline">{user.email}</span>
 
               <button
                 onClick={onLogout}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
                 Logout
               </button>
 
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-black text-white">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full font-black text-white text-sm"
+                style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}
+              >
                 {initial}
               </div>
             </>
@@ -94,13 +100,13 @@ export default function Topbar({ onMenuOpen }) {
             <>
               <Link
                 to="/login"
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 transition"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:opacity-95"
+                className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90 transition"
               >
                 Register
               </Link>

@@ -7,7 +7,7 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f0f4f8 0%, #e8edf5 100%)" }}>
       <Topbar onMenuOpen={() => setMobileOpen(true)} />
 
       <div className="mx-auto flex w-full max-w-7xl gap-6 px-6 py-8">
