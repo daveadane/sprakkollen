@@ -46,19 +46,17 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#006AA7" }}>
-        {/* Swedish flag cross overlay */}
-        <svg
+        {/* Swedish flag yellow cross */}
+        <div
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full"
-          preserveAspectRatio="none"
-          viewBox="0 0 16 10"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ opacity: 0.25 }}
-        >
-          <rect width="16" height="10" fill="#006AA7" />
-          <rect x="0" y="4" width="16" height="2" fill="#FECC00" />
-          <rect x="5" y="0" width="2" height="10" fill="#FECC00" />
-        </svg>
+          className="absolute inset-0"
+          style={{
+            backgroundImage: [
+              "linear-gradient(transparent 38%, rgba(254,204,0,0.35) 38%, rgba(254,204,0,0.35) 62%, transparent 62%)",
+              "linear-gradient(90deg, transparent 31%, rgba(254,204,0,0.35) 31%, rgba(254,204,0,0.35) 44%, transparent 44%)",
+            ].join(", "),
+          }}
+        />
 
         <div className="relative mx-auto max-w-5xl px-6 py-28 text-center">
           <div
