@@ -1,8 +1,8 @@
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 px-6 py-12">
       <div>
-        <h1 className="text-3xl font-black tracking-tight">Contact</h1>
+        <h1 className="text-4xl font-black tracking-tight text-slate-900">Contact</h1>
         <p className="mt-3 text-slate-600 leading-relaxed">
           Språkkollen is a student project. Have a question, found a bug, or want to suggest
           a word? Feel free to reach out.

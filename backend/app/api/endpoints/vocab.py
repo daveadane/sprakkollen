@@ -21,6 +21,20 @@ def count_vocab(
     return {"count": q.count()}
 
 
+@router.get("/all", response_model=list[VocabOut])
+def all_vocab(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return all saved words (no pagination) for study/flashcard mode."""
+    return (
+        db.query(VocabularyWord)
+        .filter(VocabularyWord.user_id == user.id)
+        .order_by(VocabularyWord.word)
+        .all()
+    )
+
+
 @router.get("", response_model=list[VocabOut])
 def list_vocab(
     skip: int = Query(0, ge=0),

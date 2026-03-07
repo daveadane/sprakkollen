@@ -220,10 +220,152 @@ function AdminVocabularyPage() {
   );
 }
 
+// ─── Study Mode ──────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function StudyMode({ onExit }) {
+  const [words, setWords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const [i, setI] = useState(0);
+  const [score, setScore] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    apiFetch("/vocab/all")
+      .then((data) => {
+        setWords(shuffle(Array.isArray(data) ? data : []));
+        setLoading(false);
+      })
+      .catch((e) => { setErr(e?.message || "Failed to load words"); setLoading(false); });
+  }, []);
+
+  function choose(article) {
+    if (picked) return;
+    setPicked(article);
+    if (article === words[i]?.article) setScore((s) => s + 1);
+  }
+
+  function next() {
+    const nextI = i + 1;
+    if (nextI >= words.length) { setDone(true); return; }
+    setI(nextI);
+    setPicked(null);
+  }
+
+  if (loading) return <div className="text-slate-500">Loading your words…</div>;
+  if (err) return <div className="text-red-600 font-semibold">{err}</div>;
+
+  if (words.length < 2) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="font-black text-amber-800 text-lg">Not enough words to study!</p>
+          <p className="mt-2 text-amber-700 text-sm">Save at least 2 words to your vocabulary list first.</p>
+        </div>
+        <button onClick={onExit} className="rounded-2xl border border-slate-200 px-5 py-2.5 font-semibold hover:bg-slate-50">
+          ← Back to list
+        </button>
+      </div>
+    );
+  }
+
+  if (done) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-5xl mb-3">{score === words.length ? "🏆" : score >= words.length / 2 ? "👍" : "💪"}</p>
+          <h2 className="text-3xl font-black">Study session complete!</h2>
+          <p className="mt-3 text-5xl font-black text-blue-600">{score} / {words.length}</p>
+          <p className="mt-2 text-slate-500">{Math.round((score / words.length) * 100)}% correct</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => { setI(0); setScore(0); setPicked(null); setDone(false); setWords(shuffle(words)); }}
+            className="flex-1 rounded-2xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-700"
+          >
+            Study again
+          </button>
+          <button onClick={onExit} className="flex-1 rounded-2xl border border-slate-200 py-3 font-bold hover:bg-slate-50">
+            Back to list
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const word = words[i];
+  const correct = picked === word?.article;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black">Study Mode</h2>
+        <button onClick={onExit} className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+          ✕ Exit
+        </button>
+      </div>
+
+      <div className="text-sm text-slate-500">
+        Card {i + 1} / {words.length} · Score: {score}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+        <p className="text-4xl font-black text-slate-900">{word?.word}</p>
+        <p className="mt-2 text-slate-400 text-sm">What is the article?</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {["en", "ett"].map((art) => (
+          <button
+            key={art}
+            onClick={() => choose(art)}
+            disabled={!!picked}
+            className={`rounded-2xl border-2 py-5 text-xl font-black transition ${
+              picked
+                ? art === word?.article
+                  ? "border-green-400 bg-green-50 text-green-800"
+                  : art === picked
+                  ? "border-red-300 bg-red-50 text-red-700"
+                  : "border-slate-200 bg-white text-slate-400"
+                : "border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+            }`}
+          >
+            {art}
+          </button>
+        ))}
+      </div>
+
+      {picked && (
+        <div className={`rounded-2xl border p-4 text-center ${correct ? "border-green-200 bg-green-50" : "border-red-100 bg-red-50"}`}>
+          <p className={`font-black text-lg ${correct ? "text-green-700" : "text-red-700"}`}>
+            {correct ? "Correct! ✅" : `Not quite — it's "${word?.article} ${word?.word}" ❌`}
+          </p>
+          <button
+            onClick={next}
+            className="mt-3 rounded-2xl bg-blue-600 px-8 py-2.5 font-bold text-white hover:bg-blue-700"
+          >
+            {i + 1 >= words.length ? "See results" : "Next →"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Regular user: Personal vocabulary list ──────────────────────────────────
 const USER_LIMIT = 20;
 
 function UserVocabularyPage() {
+  const [studyMode, setStudyMode] = useState(false);
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -309,20 +451,32 @@ function UserVocabularyPage() {
     }
   }
 
+  if (studyMode) return <StudyMode onExit={() => setStudyMode(false)} />;
+
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Vocabulary</h1>
-        <p className="mt-2 text-slate-600">
-          Save words and practice them later.{" "}
-          {total > 0 && <span className="text-slate-400">({total} words)</span>}
-        </p>
-        {err && (
-          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-            {err}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight">Vocabulary</h1>
+          <p className="mt-2 text-slate-600">
+            Save words and practice them later.{" "}
+            {total > 0 && <span className="text-slate-400">({total} words)</span>}
           </p>
+        </div>
+        {total > 0 && (
+          <button
+            onClick={() => setStudyMode(true)}
+            className="shrink-0 rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-black text-white hover:bg-blue-700 shadow-sm"
+          >
+            Study Mode →
+          </button>
         )}
       </div>
+      {err && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {err}
+        </p>
+      )}
 
       <AddWordForm onAdd={addWord} />
 

@@ -34,6 +34,7 @@ const FEATURES = [
 ];
 
 const STATS = [
+  { value: "8,700+", label: "Vocabulary words" },
   { value: "500+", label: "Visual words" },
   { value: "124", label: "Grammar questions" },
   { value: "1000+", label: "Gutenberg books" },
@@ -99,7 +100,7 @@ export default function LandingPage() {
 
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
       <section className="border-y border-slate-100 bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+        <div className="mx-auto max-w-5xl px-6 py-8 grid grid-cols-2 sm:grid-cols-5 gap-6 text-center">
           {STATS.map((s) => (
             <div key={s.label}>
               <p className="text-3xl font-black text-amber-500">{s.value}</p>

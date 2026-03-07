@@ -15,7 +15,7 @@ function getTitle(pathname) {
   return "Språkkollen";
 }
 
-export default function Topbar() {
+export default function Topbar({ onMenuOpen }) {
   const location = useLocation();
   const nav = useNavigate();
   const { user, ready, logout } = useAuth();
@@ -57,7 +57,18 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <h1 className="text-lg font-black tracking-tight">{title}</h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onMenuOpen}
+            className="md:hidden rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+            aria-label="Open menu"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-black tracking-tight">{title}</h1>
+        </div>
 
         <div className="flex items-center gap-4">
           <span className="rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">
