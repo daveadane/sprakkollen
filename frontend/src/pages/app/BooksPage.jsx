@@ -23,9 +23,9 @@ export default function BooksPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Reading</h1>
-        <p className="mt-2 text-slate-600">
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+        <h1 className="text-3xl font-black tracking-tight">📖 Reading</h1>
+        <p className="mt-2 text-blue-100">
           Read Swedish texts and answer comprehension questions.
         </p>
       </div>

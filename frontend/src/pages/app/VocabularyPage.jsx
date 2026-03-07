@@ -455,18 +455,18 @@ function UserVocabularyPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="rounded-2xl p-6 text-white flex items-start justify-between gap-4" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Vocabulary</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl font-black tracking-tight">⭐ Vocabulary</h1>
+          <p className="mt-2 text-blue-100">
             Save words and practice them later.{" "}
-            {total > 0 && <span className="text-slate-400">({total} words)</span>}
+            {total > 0 && <span className="text-blue-200">({total} words)</span>}
           </p>
         </div>
         {total > 0 && (
           <button
             onClick={() => setStudyMode(true)}
-            className="shrink-0 rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-black text-white hover:bg-blue-700 shadow-sm"
+            className="shrink-0 rounded-2xl px-5 py-2.5 text-sm font-black shadow-sm" style={{ background: "#FECC00", color: "#1a2744" }}
           >
             Study Mode →
           </button>

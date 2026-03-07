@@ -173,10 +173,10 @@ export default function GrammarPage() {
   if (!started) {
     return (
       <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Grammar</h1>
-          <p className="mt-2 text-slate-600">Choose your difficulty and test your Swedish grammar.</p>
-          {err ? <p className="mt-2 text-sm font-semibold text-red-600">{err}</p> : null}
+        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+          <h1 className="text-3xl font-black tracking-tight">📝 Grammar</h1>
+          <p className="mt-2 text-blue-100">Choose your difficulty and test your Swedish grammar.</p>
+          {err ? <p className="mt-2 text-sm font-semibold text-red-300">{err}</p> : null}
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">

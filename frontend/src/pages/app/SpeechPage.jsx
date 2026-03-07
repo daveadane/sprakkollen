@@ -134,9 +134,9 @@ export default function SpeechPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Speech Exercise</h1>
-        <p className="mt-2 text-slate-600">
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+        <h1 className="text-3xl font-black tracking-tight">🗣️ Speech Exercise</h1>
+        <p className="mt-2 text-blue-100">
           Say the Swedish word out loud. The microphone will check your pronunciation.
         </p>
       </div>

@@ -96,11 +96,11 @@ export default function DictationPage() {
   if (phase === "start") {
     return (
       <div className="mx-auto max-w-xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Dictation</h1>
-          <p className="mt-2 text-slate-600">
+        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+          <h1 className="text-3xl font-black tracking-tight">🎧 Dictation</h1>
+          <p className="mt-2 text-blue-100">
             Listen to a Swedish word and type what you hear. Words are pulled from
-            the Swedish word database. Press <kbd className="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-xs">Enter</kbd> to check and advance.
+            the Swedish word database. Press <kbd className="rounded border border-white/30 bg-white/10 px-1.5 py-0.5 text-xs">Enter</kbd> to check and advance.
           </p>
         </div>
 

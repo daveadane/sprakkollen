@@ -136,9 +136,9 @@ export default function ImageQuizPage() {
   if (phase === "start") {
     return (
       <div className="mx-auto max-w-xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Image Quiz</h1>
-          <p className="mt-2 text-slate-600">
+        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+          <h1 className="text-3xl font-black tracking-tight">🖼️ Image Quiz</h1>
+          <p className="mt-2 text-blue-100">
             Look at the image and type (or speak) the Swedish word. 8 words per session.
           </p>
         </div>
