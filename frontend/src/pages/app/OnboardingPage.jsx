@@ -15,7 +15,7 @@ const STEPS = [
     key: "welcome",
     emoji: "🇸🇪",
     title: "Welcome to SpråkKollen!",
-    body: "Your personal Swedish language learning companion. We'll help you master en/ett, grammar, reading, and more.",
+    body: "Your personal Swedish language learning companion. We'll help you master en/ett, grammar, reading, and more — including SVA1 and SVA3 exam preparation.",
     cta: "Let's go",
   },
   {
@@ -36,6 +36,7 @@ const STEPS = [
       { icon: "📚", label: "Books", desc: "Read classic Swedish literature with AI comprehension quizzes." },
       { icon: "🎙️", label: "Podcasts", desc: "Listen to Swedish radio and answer questions." },
       { icon: "🎤", label: "Speaking", desc: "30-day speaking challenge with AI feedback." },
+      { icon: "📋", label: "Exam Practice", desc: "Timed SVA1 and SVA3 mock exams with reading passage, grammar questions, and instant results." },
     ],
     cta: "Sounds great!",
   },
