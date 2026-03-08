@@ -6,6 +6,7 @@ const FEATURES = [
   { icon: "🎧", title: "Podcasts", desc: "Real Swedish radio episodes from Sveriges Radio with listening comprehension questions." },
   { icon: "🖼️", title: "Image Quiz", desc: "See a photo, type the Swedish word. 500+ everyday nouns across 18 categories." },
   { icon: "🎤", title: "Speaking Challenge", desc: "30-day speaking streak. Record yourself and get AI-powered feedback from Claude." },
+  { icon: "📋", title: "Exam Practice", desc: "Timed SVA1 and SVA3 mock exams — reading passage, grammar questions, and instant results with per-question review." },
   { icon: "📈", title: "Progress", desc: "Track your streak, XP, accuracy, and session history over time." },
 ];
 
@@ -17,7 +18,7 @@ export default function AboutPage() {
         <p className="mt-4 text-slate-600 leading-relaxed text-lg">
           Språkkollen is a Swedish language learning platform that combines interactive exercises,
           real Swedish media, AI feedback, and classic literature — everything you need to go
-          from beginner to fluent.
+          from beginner to fluent, including preparation for the SVA1 and SVA3 national exams.
         </p>
       </div>
 

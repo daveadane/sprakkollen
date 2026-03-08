@@ -31,6 +31,11 @@ const FEATURES = [
     title: "Speaking Challenge",
     desc: "30-day speaking streak challenge. Record yourself and get AI-powered feedback.",
   },
+  {
+    icon: "📋",
+    title: "Exam Practice",
+    desc: "Timed SVA1 and SVA3 mock exams — reading passage, grammar questions, auto-graded with full review.",
+  },
 ];
 
 const STATS = [
@@ -74,7 +79,7 @@ export default function LandingPage() {
 
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed font-semibold" style={{ color: "#003d5c", textShadow: "0 1px 4px rgba(255,255,255,0.5)" }}>
             Språkkollen combines interactive exercises, real Swedish media, AI feedback,
-            and classic literature — everything you need to go from beginner to fluent.
+            and classic literature — everything you need to go from beginner to fluent, including SVA1 and SVA3 exam preparation.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -113,7 +118,7 @@ export default function LandingPage() {
         <div className="text-center mb-12">
           <h2 className="text-4xl font-black text-slate-900">Everything you need</h2>
           <p className="mt-3 text-slate-500 text-lg">
-            Six powerful modules, one platform.
+            Seven powerful modules, one platform — including SVA1 and SVA3 exam preparation.
           </p>
         </div>
 
