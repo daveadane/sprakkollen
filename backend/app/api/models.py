@@ -369,6 +369,36 @@ class PodcastSession(Base):
     user: Mapped["User"] = relationship("User", back_populates="podcast_sessions")
 
 
+class ExamPassage(Base):
+    """A reading passage used in exam practice, with associated comprehension questions."""
+    __tablename__ = "exam_passages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    level: Mapped[str] = mapped_column(String(10), nullable=False)  # "sva1" | "sva3"
+    topic: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    questions: Mapped[List["ExamQuestion"]] = relationship(back_populates="passage", cascade="all, delete-orphan")
+
+
+class ExamQuestion(Base):
+    """A single exam question — either reading comprehension (linked to a passage) or standalone grammar."""
+    __tablename__ = "exam_questions"
+    __table_args__ = (Index("ix_exam_question_level_section", "level", "section"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    level: Mapped[str] = mapped_column(String(10), nullable=False)  # "sva1" | "sva3"
+    section: Mapped[str] = mapped_column(String(20), nullable=False)  # "reading" | "grammar"
+    passage_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exam_passages.id", ondelete="CASCADE"), nullable=True)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    choices: Mapped[list] = mapped_column(JSON, nullable=False)
+    correct_answer: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    passage: Mapped[Optional["ExamPassage"]] = relationship(back_populates="questions")
+
+
 class ExamPracticeSession(Base):
     """Records a user's completed mock exam attempt (SVA1 or SVA3)."""
     __tablename__ = "exam_practice_sessions"

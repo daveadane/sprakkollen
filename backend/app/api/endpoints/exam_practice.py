@@ -1,13 +1,14 @@
+import random
 from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 
 from app.api.db_setup import get_db
-from app.api.models import ExamPracticeSession
+from app.api.models import ExamPracticeSession, ExamPassage, ExamQuestion
 from app.api.security import get_current_user
 from app.api.models import User
 
@@ -289,11 +290,63 @@ def list_exams(_: User = Depends(get_current_user)):
 
 
 @router.get("/exams/{level}")
-def get_exam(level: str, _: User = Depends(get_current_user)):
-    exam = EXAMS.get(level.lower())
-    if not exam:
+def get_exam(level: str, _: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    level = level.lower()
+    if level not in EXAMS:
         raise HTTPException(status_code=404, detail=f"Exam '{level}' not found. Valid levels: sva1, sva3")
-    return exam
+
+    # Try to build exam from DB question bank
+    passages = db.execute(
+        select(ExamPassage).where(ExamPassage.level == level)
+    ).scalars().all()
+
+    grammar_qs = db.execute(
+        select(ExamQuestion).where(
+            ExamQuestion.level == level,
+            ExamQuestion.section == "grammar",
+        )
+    ).scalars().all()
+
+    if passages and len(grammar_qs) >= 5:
+        # Pick a random passage and its reading questions
+        passage = random.choice(passages)
+        reading_qs = db.execute(
+            select(ExamQuestion).where(ExamQuestion.passage_id == passage.id)
+        ).scalars().all()
+
+        # Pick 5 random grammar questions
+        chosen_grammar = random.sample(list(grammar_qs), min(5, len(grammar_qs)))
+
+        questions = []
+        for i, q in enumerate(reading_qs[:5], 1):
+            questions.append({
+                "id": f"r{q.id}",
+                "section": "reading",
+                "question": q.question,
+                "choices": q.choices,
+                "correct_answer": q.correct_answer,
+            })
+        for i, q in enumerate(chosen_grammar, 1):
+            questions.append({
+                "id": f"g{q.id}",
+                "section": "grammar",
+                "question": q.question,
+                "choices": q.choices,
+                "correct_answer": q.correct_answer,
+            })
+
+        meta = EXAMS[level]
+        return {
+            "level": level,
+            "title": meta["title"],
+            "description": meta["description"],
+            "time_limit_minutes": meta["time_limit_minutes"],
+            "reading_passage": passage.text,
+            "questions": questions,
+        }
+
+    # Fallback to hardcoded exam if DB is empty
+    return EXAMS[level]
 
 
 @router.post("/submit", response_model=SubmitExamOut)
