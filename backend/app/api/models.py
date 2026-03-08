@@ -46,6 +46,7 @@ class User(Base):
     speaking_sessions: Mapped[List["SpeakingChallengeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     podcast_sessions: Mapped[List["PodcastSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     book_reading_sessions: Mapped[List["BookReadingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    exam_sessions: Mapped[List["ExamPracticeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     search_history = relationship(
     "SearchHistory",
@@ -366,6 +367,23 @@ class PodcastSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="podcast_sessions")
+
+
+class ExamPracticeSession(Base):
+    """Records a user's completed mock exam attempt (SVA1 or SVA3)."""
+    __tablename__ = "exam_practice_sessions"
+    __table_args__ = (Index("ix_exam_practice_user_created", "user_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    exam_level: Mapped[str] = mapped_column(String(10), nullable=False)  # "sva1" | "sva3"
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, nullable=False)
+    time_taken_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    answers: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="exam_sessions")
 
 
 class WordImageCache(Base):

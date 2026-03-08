@@ -23,6 +23,7 @@ from app.api.endpoints.ai_feedback import router as ai_feedback_router
 from app.api.endpoints.speaking_challenge import router as speaking_challenge_router
 from app.api.endpoints.podcasts import router as podcasts_router
 from app.api.endpoints.book_reader import router as book_reader_router
+from app.api.endpoints.exam_practice import router as exam_practice_router
 
 
 app = FastAPI(title="SpråkKollen API", version="0.1")
@@ -64,5 +65,6 @@ app.include_router(ai_feedback_router, prefix="/api")
 app.include_router(speaking_challenge_router, prefix="/api")
 app.include_router(podcasts_router, prefix="/api")
 app.include_router(book_reader_router, prefix="/api")
+app.include_router(exam_practice_router, prefix="/api")
 
 

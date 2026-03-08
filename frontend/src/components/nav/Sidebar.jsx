@@ -92,6 +92,10 @@ function SidebarNav({ user, onNav }) {
         <span className="text-base">🎤</span> Speaking Challenge
       </NavLink>
 
+      <NavLink to="/exam-practice" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
+        <span className="text-base">📋</span> Exam Practice
+      </NavLink>
+
       <NavLink to="/progress" onClick={onNav} className={({ isActive }) => `${topLink} ${isActive ? activeClass : inactiveClass}`}>
         <span className="text-base">📊</span> Progress
       </NavLink>

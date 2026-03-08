@@ -36,6 +36,8 @@ import PodcastsPage from "../pages/app/PodcastsPage";
 import PodcastEpisodePage from "../pages/app/PodcastEpisodePage";
 import BookReaderPage from "../pages/app/BookReaderPage";
 import BookChapterPage from "../pages/app/BookChapterPage";
+import ExamPracticePage from "../pages/app/ExamPracticePage";
+import ExamSessionPage from "../pages/app/ExamSessionPage";
 
 export const router = createBrowserRouter([
   // PUBLIC SITE
@@ -80,6 +82,8 @@ export const router = createBrowserRouter([
           { path: "/podcasts/:id", element: <PodcastEpisodePage /> },
           { path: "/book-reader", element: <BookReaderPage /> },
           { path: "/book-reader/:bookId/chapter/:chapterNum", element: <BookChapterPage /> },
+          { path: "/exam-practice", element: <ExamPracticePage /> },
+          { path: "/exam-practice/:level", element: <ExamSessionPage /> },
         ],
       },
     ],
