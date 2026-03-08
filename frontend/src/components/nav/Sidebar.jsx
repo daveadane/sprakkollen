@@ -123,7 +123,7 @@ function SidebarShell({ onClose, children }) {
       }}
     >
       <div className="mb-5 flex items-center justify-between px-2 pt-1">
-        <span className="text-lg font-black text-white tracking-tight">Språkkollen</span>
+        <NavLink to="/" className="text-lg font-black text-white tracking-tight hover:text-blue-200 transition-colors">Språkkollen</NavLink>
         {onClose && (
           <button
             onClick={onClose}
