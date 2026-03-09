@@ -73,7 +73,15 @@ function GrammarChecker() {
       {feedback && (
         <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 space-y-2">
           <p className="text-sm font-bold text-blue-800">AI Feedback</p>
-          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{feedback}</p>
+          <div className="text-sm text-slate-700 leading-relaxed space-y-1">
+            {feedback.split("\n").map((line, i) => {
+              const bold = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+              if (line.startsWith("## ")) return <p key={i} className="font-bold text-slate-800 mt-3">{line.slice(3)}</p>;
+              if (line.startsWith("# ")) return <p key={i} className="font-black text-slate-900 text-base mt-2">{line.slice(2)}</p>;
+              if (!line.trim()) return <div key={i} className="h-1" />;
+              return <p key={i} dangerouslySetInnerHTML={{ __html: bold }} />;
+            })}
+          </div>
           <button
             onClick={() => { setText(""); setFeedback(""); }}
             className="mt-2 text-xs text-blue-600 hover:underline"

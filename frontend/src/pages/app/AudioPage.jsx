@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiFetch } from "../../utils/api";
 import AIFeedback from "../../components/AIFeedback";
 
 function speak(text) {
   window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
+  // Replace fill-in-the-blank markers so TTS sounds natural
+  const cleaned = text.replace(/_{2,}/g, "blank").replace(/_/g, "blank");
+  const utter = new SpeechSynthesisUtterance(cleaned);
   utter.lang = "sv-SE";
   utter.rate = 0.8;
   window.speechSynthesis.speak(utter);
@@ -25,6 +27,21 @@ export default function AudioPage() {
   const q = questions[i];
   const total = questions.length;
   const isLast = i + 1 === total;
+
+  // Auto-play question audio whenever a new question loads
+  useEffect(() => {
+    if (phase === "quiz" && q) {
+      setPlayed(false);
+      const timer = setTimeout(() => {
+        speak(q.question);
+        setPlayed(true);
+      }, 400);
+      return () => {
+        clearTimeout(timer);
+        window.speechSynthesis.cancel();
+      };
+    }
+  }, [phase, i]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function startSession() {
     setPhase("loading");
@@ -141,21 +158,17 @@ export default function AudioPage() {
               onClick={handlePlay}
               className="rounded-2xl bg-pink-600 px-8 py-4 text-white font-bold text-lg hover:bg-pink-700 transition"
             >
-              🔊 Listen
+              🔊 {played ? "Replay" : "Listen"}
             </button>
-            <p className="mt-2 text-xs text-slate-400">
-              {played ? "Click again to replay" : "Click to hear the question in Swedish"}
-            </p>
+            <p className="mt-2 text-xs text-slate-400">Plays automatically · click to replay</p>
           </div>
 
-          {revealed && (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-center">
-              <p className="text-slate-700 italic">"{q.question}"</p>
-            </div>
-          )}
+          <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-center">
+            <p className="text-slate-700 font-medium">{q.question}</p>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {q.choices.map((c) => {
+          <div className="grid grid-cols-1 gap-3">
+            {(q.choices || q.options || []).map((c) => {
               let cls = "rounded-xl border px-4 py-3 text-sm font-semibold transition text-left ";
               if (!revealed) {
                 cls += "border-slate-200 bg-slate-50 hover:border-pink-400 text-slate-700 cursor-pointer";
