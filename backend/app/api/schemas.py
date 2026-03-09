@@ -217,6 +217,8 @@ class SuggestionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    user_id: int
+    user_email: Optional[str] = None
     word: str
     article: str
     suggestion_type: str

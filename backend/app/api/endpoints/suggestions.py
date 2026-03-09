@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -60,12 +58,32 @@ def list_suggestions(
     user: User = Depends(get_current_user),
 ):
     _require_admin(user)
-    return (
+    suggestions = (
         db.query(WordSuggestion)
         .filter(WordSuggestion.status == "pending")
         .order_by(WordSuggestion.created_at.asc())
         .all()
     )
+    user_ids = [s.user_id for s in suggestions]
+    email_map = {
+        u.id: u.email
+        for u in db.query(User).filter(User.id.in_(user_ids)).all()
+    }
+    return [
+        SuggestionOut(
+            id=s.id,
+            user_id=s.user_id,
+            user_email=email_map.get(s.user_id),
+            word=s.word,
+            article=s.article,
+            suggestion_type=s.suggestion_type,
+            note=s.note,
+            status=s.status,
+            admin_note=s.admin_note,
+            created_at=s.created_at,
+        )
+        for s in suggestions
+    ]
 
 
 # ── Admin: approve ────────────────────────────────────────────────────────────
@@ -107,10 +125,14 @@ def approve_suggestion(
 
     s.status = "approved"
     s.admin_note = payload.admin_note
-    s.reviewed_at = datetime.utcnow()
     db.commit()
     db.refresh(s)
-    return s
+    submitter = db.query(User).filter(User.id == s.user_id).first()
+    return SuggestionOut(
+        id=s.id, user_id=s.user_id, user_email=submitter.email if submitter else None,
+        word=s.word, article=s.article, suggestion_type=s.suggestion_type,
+        note=s.note, status=s.status, admin_note=s.admin_note, created_at=s.created_at,
+    )
 
 
 # ── Admin: reject ─────────────────────────────────────────────────────────────
@@ -128,7 +150,11 @@ def reject_suggestion(
 
     s.status = "rejected"
     s.admin_note = payload.admin_note
-    s.reviewed_at = datetime.utcnow()
     db.commit()
     db.refresh(s)
-    return s
+    submitter = db.query(User).filter(User.id == s.user_id).first()
+    return SuggestionOut(
+        id=s.id, user_id=s.user_id, user_email=submitter.email if submitter else None,
+        word=s.word, article=s.article, suggestion_type=s.suggestion_type,
+        note=s.note, status=s.status, admin_note=s.admin_note, created_at=s.created_at,
+    )
