@@ -40,8 +40,10 @@ def _build_prompt(exercise_type: str, score: int, total: int, wrong_answers: lis
     if wrong_answers:
         pairs = [f'  • "{w.word}" — you typed "{w.typed}"' for w in wrong_answers[:10]]
         wrong_lines = "Mistakes:\n" + "\n".join(pairs)
-    else:
+    elif score == total:
         wrong_lines = "No mistakes — perfect score!"
+    else:
+        wrong_lines = f"The student got {total - score} question(s) wrong. No details about specific mistakes are available for this exercise type."
 
     return f"""You are a friendly Swedish language tutor giving brief, encouraging feedback to a learner.
 
@@ -50,7 +52,7 @@ The student just completed a {label} and scored {score}/{total} ({pct}%).
 
 Write 2-4 sentences of personalised feedback in English:
 - Acknowledge their score warmly.
-- If there are mistakes, pick 1-2 interesting ones to comment on (pronunciation tip, memory trick, or common confusion).
+- If specific mistakes are listed above, pick 1-2 to comment on (pronunciation tip, memory trick, or common confusion). If no specific mistakes are listed, do NOT invent or guess any words — just give general encouragement.
 - End with a short motivating sentence.
 
 Keep it concise and upbeat. Do not use bullet points — write in flowing prose."""

@@ -355,11 +355,40 @@ def submit_exam(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    exam = EXAMS.get(payload.level.lower())
-    if not exam:
-        raise HTTPException(status_code=404, detail=f"Exam '{payload.level}' not found.")
+    level = payload.level.lower()
 
-    questions = exam["questions"]
+    # DB-based exams use IDs like "r123" / "g456"; hardcoded use "q1"-"q10"
+    uses_db = any(k.startswith(("r", "g")) for k in payload.answers)
+
+    if uses_db:
+        # Map each answer key back to the numeric ExamQuestion.id
+        db_id_map: dict[int, str] = {}  # db_pk -> answer_key
+        for k in payload.answers:
+            if k.startswith(("r", "g")):
+                try:
+                    db_id_map[int(k[1:])] = k
+                except ValueError:
+                    pass
+
+        db_rows = db.execute(
+            select(ExamQuestion).where(ExamQuestion.id.in_(db_id_map.keys()))
+        ).scalars().all()
+
+        questions = [
+            {
+                "id": db_id_map[row.id],
+                "section": row.section,
+                "question": row.question,
+                "correct_answer": row.correct_answer,
+            }
+            for row in db_rows
+        ]
+    else:
+        exam = EXAMS.get(level)
+        if not exam:
+            raise HTTPException(status_code=404, detail=f"Exam '{level}' not found.")
+        questions = exam["questions"]
+
     score = 0
     review = []
 
@@ -384,7 +413,7 @@ def submit_exam(
 
     session = ExamPracticeSession(
         user_id=current_user.id,
-        exam_level=payload.level.lower(),
+        exam_level=level,
         score=score,
         total_questions=total,
         time_taken_seconds=payload.time_taken_seconds,
