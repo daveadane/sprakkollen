@@ -1,13 +1,98 @@
 import { useState } from "react";
 import { apiFetch } from "../../utils/api";
 
+export default function GrammarPage() {
+  const [tab, setTab] = useState("quiz");
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-6">
+      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
+        <h1 className="text-3xl font-black tracking-tight">📝 Grammar</h1>
+        <p className="mt-2 text-blue-100">Test your grammar knowledge or check your own Swedish writing.</p>
+      </div>
+      <div className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+        <button
+          onClick={() => setTab("quiz")}
+          className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition ${tab === "quiz" ? "bg-blue-600 text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
+        >
+          Grammar Quiz
+        </button>
+        <button
+          onClick={() => setTab("checker")}
+          className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition ${tab === "checker" ? "bg-blue-600 text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
+        >
+          AI Checker
+        </button>
+      </div>
+      {tab === "quiz" ? <GrammarQuiz /> : <GrammarChecker />}
+    </div>
+  );
+}
+
+function GrammarChecker() {
+  const [text, setText] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function check() {
+    if (!text.trim()) return;
+    setErr("");
+    setFeedback("");
+    setLoading(true);
+    try {
+      const res = await apiFetch("/grammar/check-text", { method: "POST", body: { text } });
+      setFeedback(res.feedback);
+    } catch (e) {
+      setErr(e?.message || "Failed to get feedback");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+        <p className="text-sm font-semibold text-slate-700">Paste or type your Swedish text below:</p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder="Jag gå till skolan igår och lärde mycket saker..."
+          className="w-full rounded-xl border border-slate-200 p-4 text-slate-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        {err && <p className="text-sm text-red-600 font-medium">{err}</p>}
+        <button
+          onClick={check}
+          disabled={loading || !text.trim()}
+          className="w-full rounded-2xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:opacity-60 transition"
+        >
+          {loading ? "Checking…" : "Check my Swedish"}
+        </button>
+      </div>
+
+      {feedback && (
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 space-y-2">
+          <p className="text-sm font-bold text-blue-800">AI Feedback</p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{feedback}</p>
+          <button
+            onClick={() => { setText(""); setFeedback(""); }}
+            className="mt-2 text-xs text-blue-600 hover:underline"
+          >
+            Clear and check another
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const DIFFICULTIES = [
   { label: "Easy", count: 5, desc: "5 questions", color: "border-green-300 bg-green-50 text-green-800" },
   { label: "Medium", count: 10, desc: "10 questions", color: "border-amber-300 bg-amber-50 text-amber-800" },
   { label: "Hard", count: 20, desc: "20 questions", color: "border-red-300 bg-red-50 text-red-800" },
 ];
 
-export default function GrammarPage() {
+function GrammarQuiz() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [difficulty, setDifficulty] = useState(DIFFICULTIES[0]);
@@ -117,8 +202,8 @@ export default function GrammarPage() {
   if (started && total > 0 && i >= total) {
     const answerMap = Object.fromEntries(answers.map((a) => [a.question_id, a.chosen]));
     return (
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <h1 className="text-3xl font-black tracking-tight">Grammar Quiz Complete</h1>
+      <div className="space-y-4">
+        <h1 className="text-2xl font-black tracking-tight">Grammar Quiz Complete</h1>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <p className="text-slate-600">Your score</p>
@@ -145,13 +230,18 @@ export default function GrammarPage() {
                   <span className="text-lg leading-none mt-0.5">{correct ? "✅" : "❌"}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-slate-800">{q.question}</p>
-                    {!correct && (
-                      <p className="mt-1 text-sm text-slate-600">
-                        Your answer: <span className="font-medium text-red-700">{chosen || "—"}</span>
-                        {" · "}
-                        Correct: <span className="font-medium text-green-700">{q.correct_answer}</span>
-                      </p>
-                    )}
+                    <p className="mt-1 text-sm text-slate-600">
+                      Your answer:{" "}
+                      <span className={`font-medium ${correct ? "text-green-700" : "text-red-700"}`}>
+                        {chosen || "—"}
+                      </span>
+                      {!correct && (
+                        <>
+                          {" · "}Correct:{" "}
+                          <span className="font-medium text-green-700">{q.correct_answer}</span>
+                        </>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -172,13 +262,8 @@ export default function GrammarPage() {
   // start screen
   if (!started) {
     return (
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg,#006AA7,#004f80)" }}>
-          <h1 className="text-3xl font-black tracking-tight">📝 Grammar</h1>
-          <p className="mt-2 text-blue-100">Choose your difficulty and test your Swedish grammar.</p>
-          {err ? <p className="mt-2 text-sm font-semibold text-red-300">{err}</p> : null}
-        </div>
-
+      <div className="space-y-4">
+        {err ? <p className="text-sm font-semibold text-red-600">{err}</p> : null}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
           <p className="font-bold text-slate-700">Difficulty</p>
           <div className="grid grid-cols-3 gap-3">
@@ -214,11 +299,8 @@ export default function GrammarPage() {
   const correct = picked ? isCorrect(q, picked) : false;
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">Grammar Quiz</h1>
-        {err ? <p className="mt-2 text-sm font-semibold text-red-600">{err}</p> : null}
-      </div>
+    <div className="space-y-4">
+      {err ? <p className="text-sm font-semibold text-red-600">{err}</p> : null}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6">
         <p className="text-sm text-slate-500">

@@ -3,11 +3,13 @@ from __future__ import annotations
 import random
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import select, or_
 
 from app.api.db_setup import get_db
 from app.api.models import GrammarSession, GrammarAnswer, GrammarQuestion, User
+from app.api.settings import settings
 from app.api.security import get_current_user
 from app.api.schemas import GrammarResultOut, GrammarSubmitIn, GrammarSessionOut
 
@@ -126,3 +128,42 @@ def submit_grammar_session(
 
     accuracy = int((score / total) * 100) if total else 0
     return {"score": score, "total": total, "accuracy": accuracy}
+
+
+class CheckTextIn(BaseModel):
+    text: str
+
+
+@router.post("/check-text")
+def check_text(
+    body: CheckTextIn,
+    user: User = Depends(get_current_user),
+):
+    if not body.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if not settings.ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=503, detail="AI not configured")
+
+    try:
+        import anthropic
+    except ImportError:
+        raise HTTPException(status_code=503, detail="anthropic package not installed")
+
+    prompt = f"""You are a Swedish language teacher. A student has written the following Swedish text.
+
+Text: "{body.text.strip()}"
+
+Please analyse this text and provide feedback in English:
+1. List any grammar, spelling, or word order mistakes. For each mistake write: what was wrong, what it should be, and a short explanation.
+2. If the text has no mistakes, say so clearly.
+3. End with one sentence of encouragement.
+
+Be concise and friendly. Format mistakes as a short numbered list."""
+
+    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    response = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return {"feedback": response.content[0].text.strip()}
