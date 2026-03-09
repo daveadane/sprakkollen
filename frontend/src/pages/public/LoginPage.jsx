@@ -18,10 +18,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
+    if (loading) return;
     setErr("");
+    setLoading(true);
     try {
       const u = await login(email, password);
       // New users (coming from registration) go to onboarding if not seen yet
@@ -35,6 +38,8 @@ export default function LoginPage() {
       }
     } catch (e) {
       setErr(e.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -69,11 +74,22 @@ export default function LoginPage() {
           />
         </FormField>
 
+        <div className="text-right -mt-2">
+          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+
         {err && <p className="text-sm text-red-600">{err}</p>}
 
-        <Button className="w-full py-3" type="submit">
-          Log in
+        <Button className="w-full py-3" type="submit" disabled={loading}>
+          {loading ? "Logging in…" : "Log in"}
         </Button>
+        {loading && (
+          <p className="text-center text-xs text-slate-400">
+            This may take a moment on first load…
+          </p>
+        )}
 
         <p className="text-sm text-slate-600">
           Don't have an account?{" "}

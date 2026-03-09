@@ -47,6 +47,7 @@ class User(Base):
     podcast_sessions: Mapped[List["PodcastSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     book_reading_sessions: Mapped[List["BookReadingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     exam_sessions: Mapped[List["ExamPracticeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     search_history = relationship(
     "SearchHistory",
@@ -414,6 +415,19 @@ class ExamPracticeSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="exam_sessions")
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="reset_tokens")
 
 
 class WordImageCache(Base):

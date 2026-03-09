@@ -16,9 +16,11 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (loading) return;
     setError("");
 
     const fn = firstName.trim();
@@ -31,6 +33,7 @@ export default function RegisterPage() {
     if (password.length < 6) return setError("Password must be at least 6 characters.");
     if (password !== confirm) return setError("Passwords do not match.");
 
+    setLoading(true);
     try {
       await apiRegister({
         email: em,
@@ -40,7 +43,15 @@ export default function RegisterPage() {
       });
       nav("/login?onboarding=1");
     } catch (e) {
-      setError(e.message);
+      // 409 means the account was actually created (likely a double-submit on slow connection)
+      // Just send them to login instead of showing a confusing error
+      if (e?.status === 409 || e?.message?.toLowerCase().includes("already registered")) {
+        nav(`/login?onboarding=1&email=${encodeURIComponent(em)}`);
+      } else {
+        setError(e.message || "Registration failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -73,9 +84,14 @@ export default function RegisterPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <Button className="w-full py-3" type="submit">
-          Register
+        <Button className="w-full py-3" type="submit" disabled={loading}>
+          {loading ? "Creating account…" : "Register"}
         </Button>
+        {loading && (
+          <p className="text-center text-xs text-slate-400">
+            This may take a moment on first load…
+          </p>
+        )}
 
         <p className="text-sm text-slate-600">
           Already have an account?{" "}

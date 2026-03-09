@@ -74,3 +74,34 @@ def send_welcome_email(to_email: str, first_name: str) -> None:
     )
 
     _send(to_email, subject, html, plain)
+
+
+def send_password_reset_email(to_email: str, first_name: str, token: str) -> None:
+    name = first_name or "there"
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    subject = f"Reset your {settings.APP_NAME} password"
+
+    html = f"""
+    <html><body style="font-family:sans-serif;max-width:560px;margin:auto;padding:24px">
+      <h1 style="color:#1e40af">Password Reset</h1>
+      <p>Hi {name},</p>
+      <p>We received a request to reset your {settings.APP_NAME} password. Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
+      <a href="{reset_url}"
+         style="display:inline-block;margin-top:16px;padding:12px 24px;background:#2563eb;color:#fff;border-radius:12px;text-decoration:none;font-weight:bold">
+        Reset my password
+      </a>
+      <p style="margin-top:16px;font-size:12px;color:#64748b">Or copy this link:<br>{reset_url}</p>
+      <p style="margin-top:32px;color:#94a3b8;font-size:12px">
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </body></html>
+    """
+
+    plain = (
+        f"Hi {name},\n\n"
+        f"Reset your {settings.APP_NAME} password by visiting:\n{reset_url}\n\n"
+        "This link expires in 1 hour.\n\n"
+        "If you didn't request this, ignore this email."
+    )
+
+    _send(to_email, subject, html, plain)

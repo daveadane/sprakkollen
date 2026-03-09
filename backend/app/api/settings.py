@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = Field("", alias="SMTP_PASSWORD")
     SMTP_FROM: str = Field("", alias="SMTP_FROM")
     APP_NAME: str = Field("SpråkKollen", alias="APP_NAME")
+    FRONTEND_URL: str = Field("http://localhost:5173", alias="FRONTEND_URL")
 
     @property
     def cors_origins_list(self) -> list[str]:
