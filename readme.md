@@ -239,4 +239,4 @@ Full interactive docs: `https://sprakkollen-backend.onrender.com/docs`
 
 ## Author
 
-Dave Adane — Linnaeus University, Web Development Programme
+Dawit Adane — Nackademin-PIA25, Web Development 2026
