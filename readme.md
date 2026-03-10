@@ -2,7 +2,7 @@
 
 A full-stack Swedish language learning web application built with FastAPI and React. SpråkKollen helps learners at all levels improve their Swedish through interactive exercises, AI-powered feedback, and exam preparation tools.
 
-**Live demo:** https://sprakkollen-frontend.onrender.com
+**Live:** [https://daveadane.space](https://daveadane.space)
 
 ---
 
@@ -41,8 +41,9 @@ A full-stack Swedish language learning web application built with FastAPI and Re
 - **Web Speech API** for speech recognition and synthesis
 
 ### Infrastructure
-- **Render** — backend Web Service + frontend Static Site
-- **Supabase** — managed PostgreSQL database
+- **AWS EC2** (eu-north-1, Stockholm) — Ubuntu server running Nginx + Supervisor
+- **AWS RDS** — managed PostgreSQL database
+- **Let's Encrypt** — HTTPS via Certbot
 
 ---
 
@@ -165,42 +166,32 @@ DB_URL="postgresql+psycopg2://user:pass@host:5432/postgres" python seed_exam_que
 
 ## Deployment
 
-### Render — Backend (Web Service)
+Deployed on **AWS EC2** (eu-north-1, Stockholm) with **AWS RDS** PostgreSQL.
 
-| Setting | Value |
-|---|---|
-| Root directory | `backend` |
-| Build command | `pip install -r requirements.txt` |
-| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+### Stack
+- **Nginx** — reverse proxy for the API + serves the React `dist/` folder
+- **Supervisor** — keeps uvicorn running with 4 workers, auto-restarts on crash
+- **Certbot** — automatic HTTPS via Let's Encrypt
 
-**Environment variables:**
+### Pushing updates
 
-| Key | Value |
-|---|---|
-| `SECRET_KEY` | Random secret string |
-| `DB_URL` | Supabase Session Pooler URL (`postgresql+psycopg2://...`) |
-| `ANTHROPIC_API_KEY` | Your Anthropic key |
-| `CORS_ORIGINS` | `https://your-frontend.onrender.com` (no quotes) |
+```bash
+ssh -i ~/.ssh/sprokkollen_key.pem ubuntu@13.49.14.153
+cd ~/webbramverk-l2-daveadane
+git pull origin main
 
-### Render — Frontend (Static Site)
+# If Python dependencies changed:
+cd backend && source venv/bin/activate && pip install -r requirements.txt
 
-| Setting | Value |
-|---|---|
-| Root directory | `frontend` |
-| Build command | `npm install && npm run build` |
-| Publish directory | `dist` |
+# Restart backend:
+sudo supervisorctl restart fastapi
 
-**Environment variable:**
+# If frontend changed — rebuild:
+cd ../frontend && npm run build
 
-| Key | Value |
-|---|---|
-| `VITE_API_BASE_URL` | `https://your-backend.onrender.com/api` |
-
-Add a rewrite rule for SPA routing (Render dashboard > Redirects/Rewrites):
-
-| Source | Destination | Action |
-|---|---|---|
-| `/*` | `/index.html` | Rewrite |
+# Check logs:
+sudo tail -20 /var/log/fastapi/fastapi.err.log
+```
 
 ---
 
@@ -233,7 +224,7 @@ Run `seed_exam_questions.py` to populate the question bank (requires `ANTHROPIC_
 | `POST` | `/api/exam-practice/submit` | Submit answers, get score |
 | `GET` | `/api/exam-practice/history` | User's exam history |
 
-Full interactive docs: `https://sprakkollen-backend.onrender.com/docs`
+Full interactive docs: `https://daveadane.space/docs`
 
 ---
 
