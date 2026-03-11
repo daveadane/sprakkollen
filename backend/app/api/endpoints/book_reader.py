@@ -159,16 +159,16 @@ def _generate_questions(chapter_text: str, book_title: str, level: str = "interm
     }.get(level, "moderate difficulty")
 
     prompt = (
-        f"You are a Swedish literature teacher. A student just read a chapter from the Swedish book '{book_title}'.\n\n"
-        f"Chapter excerpt: {excerpt}\n\n"
-        f"Create exactly 4 multiple-choice comprehension questions in English about this chapter.\n"
-        f"Difficulty level: {level_desc}.\n"
-        f"Each question must have 4 choices (A, B, C, D) with exactly one correct answer.\n\n"
-        f"Respond ONLY with a JSON array, no extra text:\n"
+        f"Du är en svensk lärare i litteratur. En elev har precis läst ett kapitel från den svenska boken '{book_title}'.\n\n"
+        f"Kapitelutdrag: {excerpt}\n\n"
+        f"Skapa exakt 4 flervalssfrågor på svenska om detta kapitel.\n"
+        f"Svårighetsgrad: {level_desc}.\n"
+        f"Varje fråga måste ha 4 svarsalternativ (A, B, C, D) med exakt ett korrekt svar.\n\n"
+        f"Svara ENDAST med en JSON-array, ingen extra text:\n"
         f'[\n'
         f'  {{"question": "...", "choices": ["A) ...", "B) ...", "C) ...", "D) ..."], "correct_answer": "A) ..."}}\n'
         f']\n\n'
-        f"Test understanding of events, characters, themes, or vocabulary in the chapter."
+        f"Testa förståelse av händelser, karaktärer, teman eller ordförråd i kapitlet."
     )
 
     try:
@@ -201,24 +201,24 @@ def _generate_questions(chapter_text: str, book_title: str, level: str = "interm
 def _fallback_questions() -> list[dict]:
     return [
         {
-            "question": "What is the main theme of this passage?",
-            "choices": ["A) Adventure", "B) Love and loss", "C) Nature", "D) Social conflict"],
-            "correct_answer": "A) Adventure",
+            "question": "Vad är det huvudsakliga temat i det här avsnittet?",
+            "choices": ["A) Äventyr", "B) Kärlek och förlust", "C) Natur", "D) Sociala konflikter"],
+            "correct_answer": "A) Äventyr",
         },
         {
-            "question": "What language is this book originally written in?",
-            "choices": ["A) Norwegian", "B) Danish", "C) Swedish", "D) Finnish"],
-            "correct_answer": "C) Swedish",
+            "question": "Vilket språk är boken ursprungligen skriven på?",
+            "choices": ["A) Norska", "B) Danska", "C) Svenska", "D) Finska"],
+            "correct_answer": "C) Svenska",
         },
         {
-            "question": "Project Gutenberg books are:",
-            "choices": ["A) Copyrighted", "B) Public domain", "C) Paid", "D) Only in English"],
-            "correct_answer": "B) Public domain",
+            "question": "Böcker på Project Gutenberg är:",
+            "choices": ["A) Upphovsrättsskyddade", "B) I det fria (public domain)", "C) Betalböcker", "D) Bara på engelska"],
+            "correct_answer": "B) I det fria (public domain)",
         },
         {
-            "question": "Reading in Swedish is good for your:",
-            "choices": ["A) Vocabulary only", "B) Grammar only", "C) All language skills", "D) Pronunciation only"],
-            "correct_answer": "C) All language skills",
+            "question": "Att läsa på svenska är bra för dina:",
+            "choices": ["A) Bara ordförrådet", "B) Bara grammatiken", "C) Alla språkfärdigheter", "D) Bara uttal"],
+            "correct_answer": "C) Alla språkfärdigheter",
         },
     ]
 

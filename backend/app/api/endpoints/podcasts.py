@@ -134,17 +134,17 @@ def _generate_questions(episode_title: str, episode_description: str) -> list[di
         return _fallback_questions()
 
     prompt = (
-        f"You are a Swedish language teacher. A student just listened to a Swedish radio episode.\n\n"
-        f"Episode title: {episode_title}\n"
-        f"Episode description: {episode_description}\n\n"
-        f"Create exactly 4 multiple-choice comprehension questions in English about this episode.\n"
-        f"Each question must have 4 answer choices (A, B, C, D) with exactly one correct answer.\n\n"
-        f"Respond ONLY with a JSON array in this exact format, no extra text:\n"
+        f"Du är en svensk språklärare. En elev har precis lyssnat på ett svenskt radioavsnitt.\n\n"
+        f"Avsnittets titel: {episode_title}\n"
+        f"Avsnittets beskrivning: {episode_description}\n\n"
+        f"Skapa exakt 4 flervalssfrågor på svenska om detta avsnitt.\n"
+        f"Varje fråga måste ha 4 svarsalternativ (A, B, C, D) med exakt ett korrekt svar.\n\n"
+        f"Svara ENDAST med en JSON-array i detta exakta format, ingen extra text:\n"
         f'[\n'
         f'  {{"question": "...", "choices": ["A) ...", "B) ...", "C) ...", "D) ..."], "correct_answer": "A) ..."}},\n'
         f'  ...\n'
         f']\n\n'
-        f"Make the questions test understanding of the topic, vocabulary, or main ideas."
+        f"Testa förståelse av ämnet, ordförrådet eller huvudidéerna."
     )
 
     try:
@@ -181,22 +181,22 @@ def _generate_questions(episode_title: str, episode_description: str) -> list[di
 def _fallback_questions() -> list[dict]:
     return [
         {
-            "question": "What was the main topic of this episode?",
-            "choices": ["A) Current news", "B) Sports", "C) Weather", "D) History"],
-            "correct_answer": "A) Current news",
+            "question": "Vad handlade det här avsnittet om?",
+            "choices": ["A) Aktuella nyheter", "B) Sport", "C) Väder", "D) Historia"],
+            "correct_answer": "A) Aktuella nyheter",
         },
         {
-            "question": "Klartext is aimed at which audience?",
-            "choices": ["A) Advanced speakers", "B) Language learners and children", "C) Politicians", "D) Scientists"],
-            "correct_answer": "B) Language learners and children",
+            "question": "Vilken målgrupp riktar sig Klartext till?",
+            "choices": ["A) Avancerade talare", "B) Språkinlärare och barn", "C) Politiker", "D) Forskare"],
+            "correct_answer": "B) Språkinlärare och barn",
         },
         {
-            "question": "Which language is Klartext broadcast in?",
-            "choices": ["A) English", "B) Norwegian", "C) Swedish", "D) Danish"],
-            "correct_answer": "C) Swedish",
+            "question": "På vilket språk sänds Klartext?",
+            "choices": ["A) Engelska", "B) Norska", "C) Svenska", "D) Danska"],
+            "correct_answer": "C) Svenska",
         },
         {
-            "question": "Which Swedish radio station produces Klartext?",
+            "question": "Vilken svensk radiokanal producerar Klartext?",
             "choices": ["A) SR P1", "B) SR P3", "C) SR P4", "D) SR P5"],
             "correct_answer": "A) SR P1",
         },
