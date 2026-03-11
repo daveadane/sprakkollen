@@ -260,14 +260,12 @@ export default function ExamSessionPage() {
                       <span className="font-semibold">Q{i + 1}:</span> {item.question}
                     </p>
                   </div>
-                  {!item.is_correct && (
-                    <p className="mt-1 ml-5 text-xs text-slate-500">
-                      Correct answer: <span className="font-semibold text-slate-700">{item.correct_answer}</span>
-                      {item.chosen && (
-                        <> · Your answer: <span className="text-red-600">{item.chosen}</span></>
-                      )}
-                    </p>
-                  )}
+                  <p className="mt-1 ml-5 text-xs text-slate-500">
+                    Correct answer: <span className="font-semibold text-slate-700">{item.correct_answer}</span>
+                    {!item.is_correct && item.chosen && (
+                      <> · Your answer: <span className="text-red-600">{item.chosen}</span></>
+                    )}
+                  </p>
                 </div>
               ))}
             </div>
