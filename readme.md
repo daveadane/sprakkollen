@@ -224,7 +224,7 @@ Run `seed_exam_questions.py` to populate the question bank (requires `ANTHROPIC_
 | `POST` | `/api/exam-practice/submit` | Submit answers, get score |
 | `GET` | `/api/exam-practice/history` | User's exam history |
 
-Full interactive docs: `https://daveadane.space/docs`
+Full interactive docs: [https://daveadane.space/docs](https://daveadane.space/docs)
 
 ---
 
