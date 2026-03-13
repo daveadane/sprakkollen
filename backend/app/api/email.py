@@ -76,6 +76,37 @@ def send_welcome_email(to_email: str, first_name: str) -> None:
     _send(to_email, subject, html, plain)
 
 
+def send_verification_email(to_email: str, first_name: str, token: str) -> None:
+    name = first_name or "there"
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+    subject = f"Verify your {settings.APP_NAME} email"
+
+    html = f"""
+    <html><body style="font-family:sans-serif;max-width:560px;margin:auto;padding:24px">
+      <h1 style="color:#1e40af">Verify your email</h1>
+      <p>Hi {name},</p>
+      <p>Thanks for registering at {settings.APP_NAME}! Please verify your email address by clicking the button below. This link expires in <strong>24 hours</strong>.</p>
+      <a href="{verify_url}"
+         style="display:inline-block;margin-top:16px;padding:12px 24px;background:#2563eb;color:#fff;border-radius:12px;text-decoration:none;font-weight:bold">
+        Verify my email
+      </a>
+      <p style="margin-top:16px;font-size:12px;color:#64748b">Or copy this link:<br>{verify_url}</p>
+      <p style="margin-top:32px;color:#94a3b8;font-size:12px">
+        If you didn't create an account, you can safely ignore this email.
+      </p>
+    </body></html>
+    """
+
+    plain = (
+        f"Hi {name},\n\n"
+        f"Verify your {settings.APP_NAME} email by visiting:\n{verify_url}\n\n"
+        "This link expires in 24 hours.\n\n"
+        "If you didn't create an account, ignore this email."
+    )
+
+    _send(to_email, subject, html, plain)
+
+
 def send_password_reset_email(to_email: str, first_name: str, token: str) -> None:
     name = first_name or "there"
     reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"

@@ -22,9 +22,9 @@ class ResetPasswordIn(BaseModel):
     token: str
 
 from app.api.db_setup import get_db
-from app.api.models import User, Token, PasswordResetToken
+from app.api.models import User, Token, PasswordResetToken, EmailVerificationToken
 from app.api.schemas import RegisterIn, TokenOut
-from app.api.email import send_welcome_email, send_password_reset_email
+from app.api.email import send_welcome_email, send_password_reset_email, send_verification_email
 from app.api.security import (
     create_database_token,
     get_current_token,
@@ -58,8 +58,16 @@ def register(payload: RegisterIn, db: Session = Depends(get_db)):
 
     db.refresh(new_user)
 
-    # Send welcome email (silently skipped if SMTP not configured)
-    send_welcome_email(new_user.email, new_user.first_name or "")
+    # Create email verification token
+    verification_token = secrets.token_urlsafe(32)
+    db.add(EmailVerificationToken(
+        user_id=new_user.id,
+        token=verification_token,
+        expires_at=datetime.utcnow() + timedelta(hours=24),
+    ))
+    db.commit()
+
+    send_verification_email(new_user.email, new_user.first_name or "", verification_token)
 
     return {"id": new_user.id, "email": new_user.email}
 
@@ -77,6 +85,9 @@ def login(
 
     if not user.is_active:
         raise HTTPException(status_code=403, detail="User is inactive")
+
+    if not user.is_verified:
+        raise HTTPException(status_code=403, detail="Please verify your email before logging in. Check your inbox.")
 
     if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -176,3 +187,29 @@ def reset_password(payload: ResetPasswordIn, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Password reset successfully. You can now log in with your new password."}
+
+
+@router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    record = db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.token == token,
+        EmailVerificationToken.used == False,
+    ).first()
+
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification link.")
+
+    if record.expires_at < datetime.utcnow():
+        record.used = True
+        db.commit()
+        raise HTTPException(status_code=400, detail="This verification link has expired. Please register again.")
+
+    user = db.query(User).filter(User.id == record.user_id).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found.")
+
+    user.is_verified = True
+    record.used = True
+    db.commit()
+
+    return {"message": "Email verified successfully. You can now log in."}

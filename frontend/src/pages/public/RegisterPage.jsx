@@ -1,22 +1,19 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import FormField from "../../components/ui/FormField";
 import { register as apiRegister } from "../../utils/authApi";
 
 export default function RegisterPage() {
-  const nav = useNavigate();
-
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -35,24 +32,36 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await apiRegister({
-        email: em,
-        password,
-        first_name: fn,
-        last_name: ln,
-      });
-      nav("/login?onboarding=1");
+      await apiRegister({ email: em, password, first_name: fn, last_name: ln });
+      setDone(true);
     } catch (e) {
-      // 409 means the account was actually created (likely a double-submit on slow connection)
-      // Just send them to login instead of showing a confusing error
       if (e?.status === 409 || e?.message?.toLowerCase().includes("already registered")) {
-        nav(`/login?onboarding=1&email=${encodeURIComponent(em)}`);
+        setError("This email is already registered. Try logging in.");
       } else {
         setError(e.message || "Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
     }
+  }
+
+  if (done) {
+    return (
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm text-center space-y-4">
+        <p className="text-4xl">📧</p>
+        <h1 className="text-2xl font-black">Check your email</h1>
+        <p className="text-sm text-slate-600">
+          We sent a verification link to <strong>{email}</strong>.<br />
+          Click the link to activate your account.
+        </p>
+        <p className="text-xs text-slate-400">Don't see it? Check your spam folder.</p>
+        <p className="text-sm">
+          <Link to="/login" className="text-blue-700 font-semibold hover:underline">
+            ← Back to login
+          </Link>
+        </p>
+      </div>
+    );
   }
 
   return (

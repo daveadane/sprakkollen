@@ -33,6 +33,7 @@ class User(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     level: Mapped[str] = mapped_column(String(20), nullable=False, default="beginner")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -48,6 +49,7 @@ class User(Base):
     book_reading_sessions: Mapped[List["BookReadingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     exam_sessions: Mapped[List["ExamPracticeSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    verification_tokens: Mapped[List["EmailVerificationToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     search_history = relationship(
     "SearchHistory",
@@ -428,6 +430,19 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="reset_tokens")
+
+
+class EmailVerificationToken(Base):
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="verification_tokens")
 
 
 class WordImageCache(Base):

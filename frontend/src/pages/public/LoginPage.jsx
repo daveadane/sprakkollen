@@ -80,7 +80,18 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {err && <p className="text-sm text-red-600">{err}</p>}
+        {err && (
+          <p className="text-sm text-red-600">
+            {err}
+            {err.toLowerCase().includes("verify your email") && (
+              <span className="block mt-1">
+                <Link to="/forgot-password" className="text-blue-600 hover:underline font-medium">
+                  Resend verification email?
+                </Link>
+              </span>
+            )}
+          </p>
+        )}
 
         <Button className="w-full py-3" type="submit" disabled={loading}>
           {loading ? "Logging in…" : "Log in"}
