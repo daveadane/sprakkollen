@@ -290,6 +290,7 @@ export default function AdminPage() {
                   <Th>Last</Th>
                   <Th>Admin</Th>
                   <Th>Active</Th>
+                  <Th>Verified</Th>
                   <Th>Created</Th>
                   <Th className="text-right">Actions</Th>
                 </tr>
@@ -303,6 +304,7 @@ export default function AdminPage() {
                     <Td>{u.last_name ?? "—"}</Td>
                     <Td>{u.is_admin ? "Yes" : "No"}</Td>
                     <Td>{u.is_active ? "Yes" : "No"}</Td>
+                    <Td>{u.is_verified ? <span className="text-green-600 font-semibold">✓</span> : <span className="text-red-500">✗</span>}</Td>
                     <Td className="text-sm">{fmtDate(u.created_at)}</Td>
 
                     <Td className="text-right">
