@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { apiFetch } from "../../utils/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -12,18 +13,10 @@ export default function ForgotPasswordPage() {
     setErr("");
     setLoading(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim().toLowerCase() }),
-        }
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.detail || "Something went wrong.");
-      }
+      await apiFetch("/auth/forgot-password", {
+        method: "POST",
+        body: { email: email.trim().toLowerCase() },
+      });
       setDone(true);
     } catch (e) {
       setErr(e.message || "Something went wrong.");

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { apiFetch } from "../../utils/api";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -25,16 +26,10 @@ export default function ResetPasswordPage() {
     setErr("");
     setLoading(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, new_password: password }),
-        }
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.detail || "Failed to reset password.");
+      await apiFetch("/auth/reset-password", {
+        method: "POST",
+        body: { token, new_password: password },
+      });
       setDone(true);
     } catch (e) {
       setErr(e.message || "Something went wrong.");
